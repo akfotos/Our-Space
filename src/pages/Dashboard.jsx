@@ -109,9 +109,9 @@ function Dashboard() {
       <header className="relative text-center pt-4 animate-fade-in-up">
         <div className="inline-flex items-center justify-center gap-3 mb-2">
           <img
-            src="/Logo.png"
+            src={`${import.meta.env.BASE_URL}Logo.png`}
             alt="Our Space"
-            className="h-14 w-auto animate-float"
+            className="h-14 w-auto animate-float rounded-2xl"
           />
           <h1 className="text-5xl sm:text-6xl font-black bg-clip-text text-transparent bg-gradient-to-r from-rose-700 via-rose-500 to-rose-700 drop-shadow-sm">
             Our Space

@@ -39,7 +39,11 @@ function Nav() {
     <nav className="bg-white/80 backdrop-blur border-b border-rose-100 sticky top-0 z-50">
       <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
         <Link to="/" className="flex items-center">
-          <img src="/Logo.png" alt="Our Space" className="h-8 w-auto" />
+          <img
+            src={`${import.meta.env.BASE_URL}Logo.png`}
+            alt="Our Space"
+            className="h-8 w-auto rounded-lg"
+          />
         </Link>
 
         <button
