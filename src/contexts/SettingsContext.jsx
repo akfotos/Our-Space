@@ -3,6 +3,7 @@ import { REUNION_DATE } from '../config';
 import { auth, db } from '../firebaseConfig';
 import { onAuthStateChanged } from 'firebase/auth';
 import { doc, onSnapshot, setDoc } from 'firebase/firestore';
+import { useCouple } from './CoupleContext';
 
 const defaults = {
   darkMode: false,
@@ -36,6 +37,7 @@ export function SettingsProvider({ children }) {
   const [loaded, setLoaded] = useState(false);
   const settingsRef = useRef(settings);
   const remoteDateRef = useRef(null);
+  const { coupleId } = useCouple();
 
   useEffect(() => {
     settingsRef.current = settings;
@@ -47,8 +49,9 @@ export function SettingsProvider({ children }) {
   }, []);
 
   useEffect(() => {
-    if (!currentUser) return;
-    const unsub = onSnapshot(doc(db, 'settings', 'shared'), (snap) => {
+    if (!currentUser || !coupleId) return;
+    const settingsDoc = doc(db, 'couples', coupleId, 'settings', 'shared');
+    const unsub = onSnapshot(settingsDoc, (snap) => {
       if (snap.exists()) {
         const data = snap.data();
         remoteDateRef.current = data.reunionDate || null;
@@ -61,16 +64,16 @@ export function SettingsProvider({ children }) {
       setLoaded(true);
     });
     return unsub;
-  }, [currentUser]);
+  }, [currentUser, coupleId]);
 
   useEffect(() => {
-    if (!loaded || !currentUser) return;
+    if (!loaded || !currentUser || !coupleId) return;
     if (settings.reunionDate && settings.reunionDate !== remoteDateRef.current) {
-      setDoc(doc(db, 'settings', 'shared'), { reunionDate: settings.reunionDate }, { merge: true }).catch(
+      setDoc(doc(db, 'couples', coupleId, 'settings', 'shared'), { reunionDate: settings.reunionDate }, { merge: true }).catch(
         () => {}
       );
     }
-  }, [settings.reunionDate, loaded, currentUser]);
+  }, [settings.reunionDate, loaded, currentUser, coupleId]);
 
   useEffect(() => {
     localStorage.setItem('our-space-settings', JSON.stringify(settings));

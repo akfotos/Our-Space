@@ -11,22 +11,26 @@ import {
   serverTimestamp,
 } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
+import { useCouple } from '../contexts/CoupleContext';
 
 export function useBucketList() {
+  const { coupleId } = useCouple();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const q = query(collection(db, 'bucketList'), orderBy('createdAt', 'desc'));
+    if (!coupleId) return;
+    const q = query(collection(db, 'couples', coupleId, 'bucketList'), orderBy('createdAt', 'desc'));
     const unsub = onSnapshot(q, (snap) => {
       setItems(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
       setLoading(false);
     });
     return unsub;
-  }, []);
+  }, [coupleId]);
 
   const add = async (title, user) => {
-    await addDoc(collection(db, 'bucketList'), {
+    if (!coupleId) return;
+    await addDoc(collection(db, 'couples', coupleId, 'bucketList'), {
       title,
       done: false,
       createdAt: serverTimestamp(),
@@ -36,11 +40,13 @@ export function useBucketList() {
   };
 
   const toggle = async (item) => {
-    await updateDoc(doc(db, 'bucketList', item.id), { done: !item.done });
+    if (!coupleId) return;
+    await updateDoc(doc(db, 'couples', coupleId, 'bucketList', item.id), { done: !item.done });
   };
 
   const remove = async (item) => {
-    await deleteDoc(doc(db, 'bucketList', item.id));
+    if (!coupleId) return;
+    await deleteDoc(doc(db, 'couples', coupleId, 'bucketList', item.id));
   };
 
   return { items, loading, add, toggle, remove };

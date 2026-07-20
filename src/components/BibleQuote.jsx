@@ -13,6 +13,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 import { useAuth } from '../contexts/AuthContext';
+import { useCouple } from '../contexts/CoupleContext';
 import {
   BookOpen,
   Send,
@@ -53,6 +54,7 @@ function parseReference(input) {
 
 function BibleQuote() {
   const { user } = useAuth();
+  const { coupleId } = useCouple();
   const [version, setVersion] = useState('niv');
   const [verse, setVerse] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -60,10 +62,10 @@ function BibleQuote() {
   const [lookupError, setLookupError] = useState('');
   const [sending, setSending] = useState(false);
   const [items, setItems] = useState([]);
-  const sharedDoc = doc(db, 'settings', 'currentBibleVerse');
+  const sharedDoc = coupleId ? doc(db, 'couples', coupleId, 'settings', 'shared') : null;
 
   const saveSharedVerse = async (next) => {
-    if (!user) return;
+    if (!user || !sharedDoc) return;
     await setDoc(sharedDoc, {
       ...next,
       updatedBy: user.displayName,
@@ -73,7 +75,7 @@ function BibleQuote() {
   };
 
   const clearSharedVerse = async () => {
-    if (!user) return;
+    if (!user || !sharedDoc) return;
     await setDoc(sharedDoc, {
       reference: '',
       text: '',
@@ -86,7 +88,8 @@ function BibleQuote() {
   };
 
   const deleteVerse = async (id) => {
-    await deleteDoc(doc(db, 'bibleVerses', id));
+    if (!coupleId) return;
+    await deleteDoc(doc(db, 'couples', coupleId, 'bibleVerses', id));
   };
 
   const fetchVOTD = async (ver, sync = false) => {
@@ -186,6 +189,7 @@ function BibleQuote() {
   };
 
   useEffect(() => {
+    if (!sharedDoc) return;
     const unsub = onSnapshot(sharedDoc, (snap) => {
       if (snap.exists()) {
         const data = snap.data();
@@ -208,8 +212,9 @@ function BibleQuote() {
   }, []);
 
   useEffect(() => {
+    if (!coupleId) return;
     const q = query(
-      collection(db, 'bibleVerses'),
+      collection(db, 'couples', coupleId, 'bibleVerses'),
       orderBy('timestamp', 'desc'),
       limit(10)
     );
@@ -217,13 +222,13 @@ function BibleQuote() {
       setItems(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
     });
     return unsub;
-  }, []);
+  }, [coupleId]);
 
   const sendVerse = async () => {
-    if (!verse || !verse.text.trim()) return;
+    if (!verse || !verse.text.trim() || !coupleId) return;
     setSending(true);
     try {
-      await addDoc(collection(db, 'bibleVerses'), {
+      await addDoc(collection(db, 'couples', coupleId, 'bibleVerses'), {
         uid: user.uid,
         name: user.displayName,
         reference: verse.reference,

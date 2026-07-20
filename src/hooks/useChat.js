@@ -18,9 +18,9 @@ import {
 } from 'firebase/storage';
 import { rtdb, storage } from '../firebaseConfig';
 import { useAuth } from '../contexts/AuthContext';
+import { useCouple } from '../contexts/CoupleContext';
 import {
   MAX_TYPING_IDLE_MS,
-  USERS,
   EMAILJS_SERVICE_ID,
   EMAILJS_TEMPLATE_ID,
   EMAILJS_PUBLIC_KEY,
@@ -37,6 +37,7 @@ function chatFileName(file) {
 
 export function useChat() {
   const { user } = useAuth();
+  const { coupleId, partner } = useCouple();
   const [messages, setMessages] = useState([]);
   const [typing, setTypingState] = useState({});
   const [missYou, setMissYou] = useState(null);
@@ -48,8 +49,9 @@ export function useChat() {
   }, [messages, user]);
 
   useEffect(() => {
+    if (!coupleId) return;
     const messagesRef = query(
-      ref(rtdb, 'messages'),
+      ref(rtdb, `chat/${coupleId}/messages`),
       orderByChild('timestamp'),
       limitToLast(100)
     );
@@ -61,11 +63,11 @@ export function useChat() {
       setMessages(arr);
     });
     return unsub;
-  }, []);
+  }, [coupleId]);
 
   useEffect(() => {
-    if (!user) return;
-    const typingRef = ref(rtdb, 'typing');
+    if (!user || !coupleId) return;
+    const typingRef = ref(rtdb, `chat/${coupleId}/typing`);
     const unsub = onValue(typingRef, (snap) => {
       const val = snap.val() || {};
       const others = Object.fromEntries(
@@ -74,7 +76,7 @@ export function useChat() {
       setTypingState(others);
     });
     return unsub;
-  }, [user]);
+  }, [user, coupleId]);
 
   useEffect(() => {
     if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
@@ -83,7 +85,8 @@ export function useChat() {
   }, []);
 
   useEffect(() => {
-    const missRef = ref(rtdb, 'missYou');
+    if (!coupleId) return;
+    const missRef = ref(rtdb, `chat/${coupleId}/missYou`);
     const unsub = onValue(missRef, (snap) => {
       const val = snap.exists() ? snap.val() : null;
       setMissYou(val);
@@ -96,10 +99,10 @@ export function useChat() {
       }
     });
     return unsub;
-  }, [user]);
+  }, [user, coupleId]);
 
   const pushMessage = (data) =>
-    push(ref(rtdb, 'messages'), {
+    push(ref(rtdb, `chat/${coupleId}/messages`), {
       uid: user.uid,
       email: user.email,
       name: user.displayName,
@@ -159,8 +162,8 @@ export function useChat() {
   };
 
   const updateTyping = async (isTyping) => {
-    if (!user) return;
-    const tRef = ref(rtdb, `typing/${user.uid}`);
+    if (!user || !coupleId) return;
+    const tRef = ref(rtdb, `chat/${coupleId}/typing/${user.uid}`);
     if (isTyping) {
       await set(tRef, {
         name: user.displayName,
@@ -177,18 +180,16 @@ export function useChat() {
   };
 
   const sendMissYou = async () => {
-    if (!user) return;
-    await set(ref(rtdb, 'missYou'), {
+    if (!user || !coupleId) return;
+    await set(ref(rtdb, `chat/${coupleId}/missYou`), {
       from: user.displayName,
       uid: user.uid,
       timestamp: serverTimestamp(),
     });
 
     try {
-      const otherEmail =
-        user.email?.toLowerCase() === USERS.A.email.toLowerCase()
-          ? USERS.B.email
-          : USERS.A.email;
+      const otherEmail = partner?.email;
+      if (!otherEmail) return;
 
       await fetch('https://api.emailjs.com/api/v1.0/email/send', {
         method: 'POST',
@@ -209,31 +210,31 @@ export function useChat() {
     }
 
     setTimeout(() => {
-      remove(ref(rtdb, 'missYou')).catch(() => {});
+      remove(ref(rtdb, `chat/${coupleId}/missYou`)).catch(() => {});
     }, 5000);
   };
 
   const markDelivered = async (messageId) => {
-    if (!user) return;
-    await set(ref(rtdb, `messages/${messageId}/deliveredBy/${user.uid}`), serverTimestamp());
+    if (!user || !coupleId) return;
+    await set(ref(rtdb, `chat/${coupleId}/messages/${messageId}/deliveredBy/${user.uid}`), serverTimestamp());
   };
 
   const markRead = async (messageId) => {
-    if (!user) return;
-    await set(ref(rtdb, `messages/${messageId}/readBy/${user.uid}`), serverTimestamp());
+    if (!user || !coupleId) return;
+    await set(ref(rtdb, `chat/${coupleId}/messages/${messageId}/readBy/${user.uid}`), serverTimestamp());
   };
 
   const editMessage = async (messageId, newText) => {
-    if (!user || !newText.trim()) return;
-    await update(ref(rtdb, `messages/${messageId}`), {
+    if (!user || !coupleId || !newText.trim()) return;
+    await update(ref(rtdb, `chat/${coupleId}/messages/${messageId}`), {
       text: newText.trim(),
       editedAt: serverTimestamp(),
     });
   };
 
   const deleteMessage = async (messageId) => {
-    if (!user) return;
-    await remove(ref(rtdb, `messages/${messageId}`));
+    if (!user || !coupleId) return;
+    await remove(ref(rtdb, `chat/${coupleId}/messages/${messageId}`));
   };
 
   return {

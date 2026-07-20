@@ -2,14 +2,12 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import {
   onAuthStateChanged,
   signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  updateProfile,
   signInWithPopup,
   signOut as fbSignOut,
 } from 'firebase/auth';
 import { auth, provider } from '../firebaseConfig';
-import { ALLOWED_EMAILS, USERS } from '../config';
-
-const allowedLower = ALLOWED_EMAILS.map((e) => e.toLowerCase());
-const isAllowed = (email) => allowedLower.includes(email?.toLowerCase());
 
 function getAuthErrorMessage(err) {
   const code = err?.code;
@@ -46,16 +44,7 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (u) => {
-      if (u && isAllowed(u.email)) {
-        const label = u.email?.toLowerCase() === USERS.A.email.toLowerCase() ? USERS.A.name : USERS.B.name;
-        setUser({ ...u, displayName: label });
-      } else if (u) {
-        fbSignOut(auth);
-        setUser(null);
-        setError('This email is not allowed. Only Emmanuel and Sarah can use this app.');
-      } else {
-        setUser(null);
-      }
+      setUser(u);
       setLoading(false);
     });
     return () => unsub();
@@ -64,11 +53,7 @@ export const AuthProvider = ({ children }) => {
   const signIn = async () => {
     setError(null);
     try {
-      const result = await signInWithPopup(auth, provider);
-      if (!isAllowed(result.user.email)) {
-        await fbSignOut(auth);
-        setError('This email is not allowed. Only Emmanuel and Sarah can use this app.');
-      }
+      await signInWithPopup(auth, provider);
     } catch (err) {
       setError(getAuthErrorMessage(err));
     }
@@ -76,12 +61,18 @@ export const AuthProvider = ({ children }) => {
 
   const signInWithEmail = async (email, password) => {
     setError(null);
-    if (!isAllowed(email)) {
-      setError('This email is not allowed. Only Emmanuel and Sarah can use this app.');
-      return;
-    }
     try {
       await signInWithEmailAndPassword(auth, email, password);
+    } catch (err) {
+      setError(getAuthErrorMessage(err));
+    }
+  };
+
+  const signUpWithEmail = async (name, email, password) => {
+    setError(null);
+    try {
+      const cred = await createUserWithEmailAndPassword(auth, email, password);
+      await updateProfile(cred.user, { displayName: name });
     } catch (err) {
       setError(getAuthErrorMessage(err));
     }
@@ -97,8 +88,8 @@ export const AuthProvider = ({ children }) => {
     error,
     signIn,
     signInWithEmail,
+    signUpWithEmail,
     signOut: signOutUser,
-    allowedEmails: ALLOWED_EMAILS,
   };
 
   return (

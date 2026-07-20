@@ -12,11 +12,11 @@ import {
   Trash2,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { useCouple } from '../contexts/CoupleContext';
 import { useChat } from '../hooks/useChat';
 import { usePresence } from '../contexts/PresenceContext';
 import OnlineStatus from '../components/OnlineStatus';
 import TypingIndicator from '../components/TypingIndicator';
-import { USERS } from '../config';
 
 function avatarInitial(name) {
   return (name || '?').trim()[0].toUpperCase();
@@ -38,8 +38,8 @@ function Chat() {
     deleteMessage,
   } = useChat();
   const presence = usePresence();
-  const otherKey = user?.email?.toLowerCase() === USERS.A.email.toLowerCase() ? 'B' : 'A';
-  const otherPresence = presence[otherKey] || { online: false };
+  const { partner } = useCouple();
+  const otherPresence = (partner?.uid && presence[partner.uid]) || { online: false };
   const [text, setText] = useState('');
   const [menuOpen, setMenuOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);

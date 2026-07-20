@@ -1,6 +1,7 @@
 import { Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { SettingsProvider } from './contexts/SettingsContext';
+import { CoupleProvider } from './contexts/CoupleContext';
 import { PresenceProvider } from './contexts/PresenceContext';
 import PrivateRoute from './components/PrivateRoute';
 import Nav from './components/Nav';
@@ -17,23 +18,25 @@ function App() {
   return (
     <SettingsProvider>
       <AuthProvider>
-        <PresenceProvider>
-          <div className="relative min-h-screen flex flex-col">
-            <BubbleBackground />
-            <Nav />
-            <main className="relative z-10 flex-1 p-4 sm:p-6">
-              <ScreenLock />
-              <Routes>
-                <Route path="/login" element={<Auth />} />
-                <Route path="/" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
-                <Route path="/chat" element={<PrivateRoute><Chat /></PrivateRoute>} />
-                <Route path="/watch" element={<PrivateRoute><Player /></PrivateRoute>} />
-                <Route path="/bucket" element={<PrivateRoute><BucketList /></PrivateRoute>} />
-                <Route path="/settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
-              </Routes>
-            </main>
-          </div>
-        </PresenceProvider>
+        <CoupleProvider>
+          <PresenceProvider>
+            <div className="relative min-h-screen flex flex-col">
+              <BubbleBackground />
+              <Nav />
+              <main className="relative z-10 flex-1 p-4 sm:p-6">
+                <ScreenLock />
+                <Routes>
+                  <Route path="/login" element={<Auth />} />
+                  <Route path="/" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
+                  <Route path="/chat" element={<PrivateRoute><Chat /></PrivateRoute>} />
+                  <Route path="/watch" element={<PrivateRoute><Player /></PrivateRoute>} />
+                  <Route path="/bucket" element={<PrivateRoute><BucketList /></PrivateRoute>} />
+                  <Route path="/settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
+                </Routes>
+              </main>
+            </div>
+          </PresenceProvider>
+        </CoupleProvider>
       </AuthProvider>
     </SettingsProvider>
   );

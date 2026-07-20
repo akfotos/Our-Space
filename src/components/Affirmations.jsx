@@ -10,6 +10,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 import { useAuth } from '../contexts/AuthContext';
+import { useCouple } from '../contexts/CoupleContext';
 import { Heart, Send } from 'lucide-react';
 
 function formatTime(ts) {
@@ -25,13 +26,15 @@ function formatTime(ts) {
 
 function Affirmations() {
   const { user } = useAuth();
+  const { coupleId } = useCouple();
   const [text, setText] = useState('');
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!coupleId) return;
     const q = query(
-      collection(db, 'affirmations'),
+      collection(db, 'couples', coupleId, 'affirmations'),
       orderBy('timestamp', 'desc'),
       limit(20)
     );
@@ -40,12 +43,12 @@ function Affirmations() {
       setLoading(false);
     });
     return unsub;
-  }, []);
+  }, [coupleId]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!text.trim()) return;
-    await addDoc(collection(db, 'affirmations'), {
+    if (!text.trim() || !coupleId) return;
+    await addDoc(collection(db, 'couples', coupleId, 'affirmations'), {
       uid: user.uid,
       name: user.displayName,
       text: text.trim(),

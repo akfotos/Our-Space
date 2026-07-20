@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { doc, setDoc, onSnapshot, serverTimestamp } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 import { useAuth } from '../contexts/AuthContext';
+import { useCouple } from '../contexts/CoupleContext';
 import { Smile, Frown, Meh, Heart } from 'lucide-react';
 
 const MOODS = [
@@ -17,12 +18,14 @@ function getTodayId() {
 
 function DailyCheckIn() {
   const { user } = useAuth();
+  const { coupleId } = useCouple();
   const [today, setToday] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const docRef = doc(db, 'dailyCheckIn', getTodayId());
+  const docRef = coupleId ? doc(db, 'couples', coupleId, 'dailyCheckIn', getTodayId()) : null;
 
   useEffect(() => {
+    if (!docRef) return;
     const unsub = onSnapshot(docRef, (snap) => {
       setToday(snap.exists() ? snap.data() : {});
       setLoading(false);
@@ -31,6 +34,7 @@ function DailyCheckIn() {
   }, [docRef]);
 
   const handleMood = async (mood) => {
+    if (!docRef) return;
     const current = today || {};
     const updates = {
       ...current,

@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { Sparkles } from 'lucide-react';
 import { useSettings } from '../contexts/SettingsContext';
 import { useAuth } from '../contexts/AuthContext';
+import { useCouple } from '../contexts/CoupleContext';
 import { db } from '../firebaseConfig';
 import { doc, onSnapshot, setDoc, serverTimestamp } from 'firebase/firestore';
 import Countdown from '../components/Countdown';
@@ -14,11 +15,6 @@ import DailyQuote from '../components/DailyQuote';
 import DistanceCard from '../components/DistanceCard';
 import Affirmations from '../components/Affirmations';
 import BibleQuote from '../components/BibleQuote';
-import { USERS } from '../config';
-
-function getUserKey(email) {
-  return email?.toLowerCase() === USERS.A.email.toLowerCase() ? 'A' : 'B';
-}
 
 function getPosition() {
   return new Promise((resolve, reject) => {
@@ -51,31 +47,30 @@ async function getLocationLabel(lat, lon) {
 function Dashboard() {
   const { settings } = useSettings();
   const { user } = useAuth();
+  const { members, coupleId } = useCouple();
   const presence = usePresence();
-  const [profiles, setProfiles] = useState(USERS);
+  const [locations, setLocations] = useState({});
 
-  const status = (key) => presence[key] || { online: false };
+  const profiles = useMemo(() => {
+    return members.map((m) => ({ ...m, ...(locations[m.uid] || {}) }));
+  }, [members, locations]);
 
-  useEffect(() => {
-    const unsubA = onSnapshot(doc(db, 'userLocations', 'A'), (snap) => {
-      if (snap.exists()) {
-        setProfiles((prev) => ({ ...prev, A: { ...prev.A, ...snap.data() } }));
-      }
-    });
-    const unsubB = onSnapshot(doc(db, 'userLocations', 'B'), (snap) => {
-      if (snap.exists()) {
-        setProfiles((prev) => ({ ...prev, B: { ...prev.B, ...snap.data() } }));
-      }
-    });
-    return () => {
-      unsubA();
-      unsubB();
-    };
-  }, []);
+  const status = (uid) => presence[uid] || { online: false };
 
   useEffect(() => {
-    if (!user) return;
-    const key = getUserKey(user.email);
+    if (!members.length) return;
+    const unsubs = members.map((m) =>
+      onSnapshot(doc(db, 'userLocations', m.uid), (snap) => {
+        if (snap.exists()) {
+          setLocations((prev) => ({ ...prev, [m.uid]: snap.data() }));
+        }
+      })
+    );
+    return () => unsubs.forEach((u) => u());
+  }, [members]);
+
+  useEffect(() => {
+    if (!user || !coupleId) return;
     let cancelled = false;
     getPosition()
       .then(async (pos) => {
@@ -86,7 +81,7 @@ function Dashboard() {
           Promise.resolve(Intl.DateTimeFormat().resolvedOptions().timeZone),
         ]);
         await setDoc(
-          doc(db, 'userLocations', key),
+          doc(db, 'userLocations', user.uid),
           {
             lat: latitude,
             lon: longitude,
@@ -94,6 +89,7 @@ function Dashboard() {
             timezone,
             name: user.displayName,
             email: user.email,
+            coupleId,
             timestamp: serverTimestamp(),
           },
           { merge: true }
@@ -103,7 +99,10 @@ function Dashboard() {
     return () => {
       cancelled = true;
     };
-  }, [user]);
+  }, [user, coupleId]);
+
+  const profileA = profiles[0] || {};
+  const profileB = profiles[1] || {};
 
   return (
     <div className="relative max-w-6xl mx-auto space-y-8 pb-10 overflow-hidden">
@@ -129,19 +128,18 @@ function Dashboard() {
         <p className="text-lg sm:text-xl text-slate-600 font-medium italic">
           Distance makes the heart grow fonder.
         </p>
-        <div className="mt-4 flex flex-wrap items-center justify-center gap-4">
-          <OnlineStatus
-            online={status('A').online}
-            lastSeen={status('A').lastSeen}
-            name={profiles.A.name}
-          />
-          <span className="hidden sm:inline text-slate-300">|</span>
-          <OnlineStatus
-            online={status('B').online}
-            lastSeen={status('B').lastSeen}
-            name={profiles.B.name}
-          />
-        </div>
+        {members.length > 0 && (
+          <div className="mt-4 flex flex-wrap items-center justify-center gap-4">
+            {members.map((m, i) => (
+              <OnlineStatus
+                key={m.uid}
+                online={status(m.uid).online}
+                lastSeen={status(m.uid).lastSeen}
+                name={m.name}
+              />
+            ))}
+          </div>
+        )}
       </header>
 
       <section className="animate-fade-in-up [animation-delay:0.05s]">
@@ -152,10 +150,10 @@ function Dashboard() {
         <Countdown />
       </section>
 
-      {settings.showWeather && (
+      {settings.showWeather && members.length > 0 && (
         <section className="grid sm:grid-cols-2 gap-5 animate-fade-in-up [animation-delay:0.2s]">
-          <TimeWeather profile={profiles.A} />
-          <TimeWeather profile={profiles.B} />
+          {profileA.name && <TimeWeather profile={profileA} />}
+          {profileB.name && <TimeWeather profile={profileB} />}
         </section>
       )}
 
@@ -169,7 +167,7 @@ function Dashboard() {
       {(settings.showQuote || settings.showDistance) && (
         <section className="grid sm:grid-cols-2 gap-5 animate-fade-in-up [animation-delay:0.4s]">
           {settings.showQuote && <DailyQuote />}
-          {settings.showDistance && <DistanceCard profileA={profiles.A} profileB={profiles.B} />}
+          {settings.showDistance && members.length > 1 && <DistanceCard profileA={profileA} profileB={profileB} />}
         </section>
       )}
 

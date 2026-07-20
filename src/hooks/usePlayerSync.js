@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { ref, onValue, set, serverTimestamp } from 'firebase/database';
 import { rtdb } from '../firebaseConfig';
 import { useAuth } from '../contexts/AuthContext';
+import { useCouple } from '../contexts/CoupleContext';
 
 const SYNC_THRESHOLD = 2;
 
@@ -44,6 +45,7 @@ function extractVideoId(input) {
 
 export function usePlayerSync(containerId) {
   const { user } = useAuth();
+  const { coupleId } = useCouple();
   const [ready, setReady] = useState(false);
   const [videoId, setVideoId] = useState('');
   const playerRef = useRef(null);
@@ -52,6 +54,10 @@ export function usePlayerSync(containerId) {
   const syncGuardRef = useRef(false);
   const userRef = useRef(user);
   const stateRef = useRef(ref(rtdb, 'playerState'));
+
+  useEffect(() => {
+    stateRef.current = coupleId ? ref(rtdb, `playerState/${coupleId}`) : ref(rtdb, 'playerState');
+  }, [coupleId]);
 
   useEffect(() => {
     userRef.current = user;

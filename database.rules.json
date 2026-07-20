@@ -1,28 +1,38 @@
-{
+﻿{
   "rules": {
-    "messages": {
-      ".read": "auth != null && auth.token.email.toLowerCase().matches(/^amenyahemmanuel@gmail.com$|^sarahyeboah023@gmail.com$/)",
-      ".write": "auth != null && auth.token.email.toLowerCase().matches(/^amenyahemmanuel@gmail.com$|^sarahyeboah023@gmail.com$/)"
-    },
-    "typing": {
-      ".read": "auth != null && auth.token.email.toLowerCase().matches(/^amenyahemmanuel@gmail.com$|^sarahyeboah023@gmail.com$/)",
-      "$uid": {
-        ".write": "auth != null && auth.uid == $uid && auth.token.email.toLowerCase().matches(/^amenyahemmanuel@gmail.com$|^sarahyeboah023@gmail.com$/)"
+    "chat": {
+      "$coupleId": {
+        ".read": "auth != null",
+        ".write": "auth != null",
+        "messages": {
+          ".read": "auth != null",
+          ".write": "auth != null"
+        },
+        "typing": {
+          ".read": "auth != null",
+          "$uid": {
+            ".write": "auth != null && auth.uid == $uid"
+          }
+        },
+        "missYou": {
+          ".read": "auth != null",
+          ".write": "auth != null"
+        }
       }
     },
-    "missYou": {
-      ".read": "auth != null && auth.token.email.toLowerCase().matches(/^amenyahemmanuel@gmail.com$|^sarahyeboah023@gmail.com$/)",
-      ".write": "auth != null && auth.token.email.toLowerCase().matches(/^amenyahemmanuel@gmail.com$|^sarahyeboah023@gmail.com$/)"
-    },
     "playerState": {
-      ".read": "auth != null && auth.token.email.toLowerCase().matches(/^amenyahemmanuel@gmail.com$|^sarahyeboah023@gmail.com$/)",
-      ".write": "auth != null && auth.token.email.toLowerCase().matches(/^amenyahemmanuel@gmail.com$|^sarahyeboah023@gmail.com$/)"
+      "$coupleId": {
+        ".read": "auth != null",
+        ".write": "auth != null"
+      }
     },
     "presence": {
-      ".read": "auth != null && auth.token.email.toLowerCase().matches(/^amenyahemmanuel@gmail.com$|^sarahyeboah023@gmail.com$/)",
-      "$uid": {
-        ".write": "auth != null && auth.uid == $uid && auth.token.email.toLowerCase().matches(/^amenyahemmanuel@gmail.com$|^sarahyeboah023@gmail.com$/)",
-        ".validate": "newData.hasChildren(['online', 'lastSeen', 'name'])"
+      "$coupleId": {
+        ".read": "auth != null",
+        "$uid": {
+          ".write": "auth != null && auth.uid == $uid",
+          ".validate": "newData.hasChildren(['online', 'lastSeen', 'name'])"
+        }
       }
     }
   }
