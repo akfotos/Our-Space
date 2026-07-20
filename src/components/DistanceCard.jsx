@@ -17,10 +17,10 @@ function haversine(lat1, lon1, lat2, lon2) {
   return R * c;
 }
 
-function DistanceCard() {
+function DistanceCard({ profileA = USERS.A, profileB = USERS.B }) {
   const km = useMemo(
-    () => haversine(USERS.A.lat, USERS.A.lon, USERS.B.lat, USERS.B.lon),
-    []
+    () => haversine(profileA.lat, profileA.lon, profileB.lat, profileB.lon),
+    [profileA, profileB]
   );
   const mi = km * 0.621371;
 
@@ -35,10 +35,10 @@ function DistanceCard() {
       </h2>
       <div className="flex items-center gap-2 text-slate-600 mb-4">
         <MapPin size={16} className="text-rose-600" />
-        <span className="text-sm font-medium">{USERS.A.location}</span>
+        <span className="text-sm font-medium">{profileA.location}</span>
         <span className="text-slate-400">⟷</span>
         <MapPin size={16} className="text-rose-600" />
-        <span className="text-sm font-medium">{USERS.B.location}</span>
+        <span className="text-sm font-medium">{profileB.location}</span>
       </div>
       <p className="text-4xl sm:text-5xl font-black text-slate-800 tabular-nums">
         {Math.round(km).toLocaleString()}

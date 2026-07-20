@@ -1,5 +1,9 @@
+import { useEffect, useState } from 'react';
 import { Heart, Sparkles } from 'lucide-react';
 import { useSettings } from '../contexts/SettingsContext';
+import { useAuth } from '../contexts/AuthContext';
+import { db } from '../firebaseConfig';
+import { doc, onSnapshot, setDoc, serverTimestamp } from 'firebase/firestore';
 import Countdown from '../components/Countdown';
 import TimeWeather from '../components/TimeWeather';
 import DailyCheckIn from '../components/DailyCheckIn';
@@ -10,8 +14,91 @@ import Affirmations from '../components/Affirmations';
 import BibleQuote from '../components/BibleQuote';
 import { USERS } from '../config';
 
+function getUserKey(email) {
+  return email?.toLowerCase() === USERS.A.email.toLowerCase() ? 'A' : 'B';
+}
+
+function getPosition() {
+  return new Promise((resolve, reject) => {
+    if (!navigator.geolocation) {
+      reject(new Error('Geolocation not supported'));
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(resolve, reject, {
+      enableHighAccuracy: true,
+      timeout: 10000,
+    });
+  });
+}
+
+async function getLocationLabel(lat, lon) {
+  try {
+    const res = await fetch(
+      `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`
+    );
+    if (!res.ok) throw new Error('Failed to geocode');
+    const data = await res.json();
+    return (
+      data.city || data.locality || data.principalSubdivision || 'Current location'
+    );
+  } catch {
+    return 'Current location';
+  }
+}
+
 function Dashboard() {
   const { settings } = useSettings();
+  const { user } = useAuth();
+  const [profiles, setProfiles] = useState(USERS);
+
+  useEffect(() => {
+    const unsubA = onSnapshot(doc(db, 'userLocations', 'A'), (snap) => {
+      if (snap.exists()) {
+        setProfiles((prev) => ({ ...prev, A: { ...prev.A, ...snap.data() } }));
+      }
+    });
+    const unsubB = onSnapshot(doc(db, 'userLocations', 'B'), (snap) => {
+      if (snap.exists()) {
+        setProfiles((prev) => ({ ...prev, B: { ...prev.B, ...snap.data() } }));
+      }
+    });
+    return () => {
+      unsubA();
+      unsubB();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!user) return;
+    const key = getUserKey(user.email);
+    let cancelled = false;
+    getPosition()
+      .then(async (pos) => {
+        if (cancelled) return;
+        const { latitude, longitude } = pos.coords;
+        const [location, timezone] = await Promise.all([
+          getLocationLabel(latitude, longitude),
+          Promise.resolve(Intl.DateTimeFormat().resolvedOptions().timeZone),
+        ]);
+        await setDoc(
+          doc(db, 'userLocations', key),
+          {
+            lat: latitude,
+            lon: longitude,
+            location,
+            timezone,
+            name: user.displayName,
+            email: user.email,
+            timestamp: serverTimestamp(),
+          },
+          { merge: true }
+        );
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
 
   return (
     <div className="relative max-w-6xl mx-auto space-y-8 pb-10 overflow-hidden">
@@ -48,8 +135,8 @@ function Dashboard() {
 
       {settings.showWeather && (
         <section className="grid sm:grid-cols-2 gap-5 animate-fade-in-up [animation-delay:0.2s]">
-          <TimeWeather profile={USERS.A} />
-          <TimeWeather profile={USERS.B} />
+          <TimeWeather profile={profiles.A} />
+          <TimeWeather profile={profiles.B} />
         </section>
       )}
 
@@ -63,7 +150,7 @@ function Dashboard() {
       {(settings.showQuote || settings.showDistance) && (
         <section className="grid sm:grid-cols-2 gap-5 animate-fade-in-up [animation-delay:0.4s]">
           {settings.showQuote && <DailyQuote />}
-          {settings.showDistance && <DistanceCard />}
+          {settings.showDistance && <DistanceCard profileA={profiles.A} profileB={profiles.B} />}
         </section>
       )}
 
