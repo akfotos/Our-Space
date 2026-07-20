@@ -5,6 +5,7 @@ import DailyCheckIn from '../components/DailyCheckIn';
 import MissYouButton from '../components/MissYouButton';
 import DailyQuote from '../components/DailyQuote';
 import DistanceCard from '../components/DistanceCard';
+import Affirmations from '../components/Affirmations';
 import { USERS } from '../config';
 
 function Dashboard() {
@@ -50,6 +51,10 @@ function Dashboard() {
       <section className="grid sm:grid-cols-2 gap-5 animate-fade-in-up [animation-delay:0.4s]">
         <DailyQuote />
         <DistanceCard />
+      </section>
+
+      <section className="animate-fade-in-up [animation-delay:0.5s]">
+        <Affirmations />
       </section>
     </div>
   );
