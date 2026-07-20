@@ -10,9 +10,23 @@ import {
   set,
   remove,
 } from 'firebase/database';
-import { rtdb } from '../firebaseConfig';
+import {
+  ref as storageRef,
+  uploadBytesResumable,
+  getDownloadURL,
+} from 'firebase/storage';
+import { rtdb, storage } from '../firebaseConfig';
 import { useAuth } from '../contexts/AuthContext';
 import { MAX_TYPING_IDLE_MS } from '../config';
+
+function chatFileName(file) {
+  const ext = file.name ? file.name.split('.').pop() : '';
+  const prefix = file.name ? file.name.replace(/\.[^/.]+$/, '') : 'attachment';
+  const safe = prefix.replace(/[^a-z0-9]/gi, '_').slice(0, 20);
+  const ts = Date.now();
+  const rand = Math.random().toString(36).slice(2, 8);
+  return ext ? `chat/${ts}_${rand}_${safe}.${ext}` : `chat/${ts}_${rand}_${safe}`;
+}
 
 export function useChat() {
   const { user } = useAuth();
@@ -58,14 +72,63 @@ export function useChat() {
     return unsub;
   }, []);
 
-  const sendMessage = async (text) => {
-    if (!text.trim() || !user) return;
-    await push(ref(rtdb, 'messages'), {
-      text: text.trim(),
+  const pushMessage = (data) =>
+    push(ref(rtdb, 'messages'), {
       uid: user.uid,
       email: user.email,
       name: user.displayName,
       timestamp: serverTimestamp(),
+      ...data,
+    });
+
+  const uploadChatFile = (file, onProgress) =>
+    new Promise((resolve, reject) => {
+      const sRef = storageRef(storage, chatFileName(file));
+      const task = uploadBytesResumable(sRef, file);
+      task.on(
+        'state_changed',
+        (snap) => {
+          const pct = Math.round((snap.bytesTransferred / snap.totalBytes) * 100);
+          onProgress?.(pct);
+        },
+        (err) => reject(err),
+        async () => {
+          const url = await getDownloadURL(task.snapshot.ref);
+          resolve({ url, fullPath: task.snapshot.ref.fullPath });
+        }
+      );
+    });
+
+  const sendMessage = async (text) => {
+    if (!text.trim() || !user) return;
+    await pushMessage({ type: 'text', text: text.trim() });
+  };
+
+  const sendFile = async (file, type, caption = '', onProgress) => {
+    if (!file || !user) return;
+    const { url, fullPath } = await uploadChatFile(file, onProgress);
+    await pushMessage({
+      type,
+      text: caption.trim(),
+      url,
+      storagePath: fullPath,
+      fileName: file.name,
+      mimeType: file.type,
+    });
+  };
+
+  const sendScreen = async (blob, caption = '', onProgress) => {
+    if (!blob || !user) return;
+    const file = new File([blob], `screenshot_${Date.now()}.png`, { type: 'image/png' });
+    await sendFile(file, 'screenshot', caption, onProgress);
+  };
+
+  const sendLink = async (url, caption = '') => {
+    if (!url || !user) return;
+    await pushMessage({
+      type: 'link',
+      text: caption.trim() || url,
+      url: url.trim(),
     });
   };
 
@@ -99,5 +162,15 @@ export function useChat() {
     }, 5000);
   };
 
-  return { messages, typing, missYou, sendMessage, updateTyping, sendMissYou };
+  return {
+    messages,
+    typing,
+    missYou,
+    sendMessage,
+    sendFile,
+    sendScreen,
+    sendLink,
+    updateTyping,
+    sendMissYou,
+  };
 }
