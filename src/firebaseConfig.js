@@ -11,6 +11,7 @@ const firebaseConfig = {
   storageBucket: 'our-space-6f569.firebasestorage.app',
   messagingSenderId: '861711076502',
   appId: '1:861711076502:web:88dfabd4411e7e8f4906b7',
+  databaseURL: 'https://our-space-6f569-default-rtdb.firebaseio.com/',
 };
 
 const app = initializeApp(firebaseConfig);
