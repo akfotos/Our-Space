@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Heart, Sparkles } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 import { useSettings } from '../contexts/SettingsContext';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../firebaseConfig';
@@ -108,9 +108,10 @@ function Dashboard() {
 
       <header className="relative text-center pt-4 animate-fade-in-up">
         <div className="inline-flex items-center justify-center gap-3 mb-2">
-          <Heart
-            size={40}
-            className="fill-rose-600 text-rose-600 animate-float"
+          <img
+            src="/Logo.png"
+            alt="Our Space"
+            className="h-14 w-auto animate-float"
           />
           <h1 className="text-5xl sm:text-6xl font-black bg-clip-text text-transparent bg-gradient-to-r from-rose-700 via-rose-500 to-rose-700 drop-shadow-sm">
             Our Space

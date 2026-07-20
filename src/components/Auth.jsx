@@ -33,6 +33,7 @@ function Auth() {
   return (
     <div className="flex min-h-[60vh] items-center justify-center px-4">
       <div className="w-full max-w-sm bg-white rounded-2xl shadow-lg p-8 text-center border border-rose-100">
+        <img src="/Logo.png" alt="Our Space" className="h-20 w-auto mx-auto mb-4" />
         <h1 className="text-3xl font-bold text-rose-600 mb-2">Our Space</h1>
         <p className="text-slate-600 mb-6">A private place for Emmanuel and Sarah.</p>
         {error && (
