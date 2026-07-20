@@ -76,6 +76,7 @@ export function usePlayerSync(containerId) {
             }
             localUpdateRef.current = true;
             set(stateRef.current, {
+              type: 'youtube',
               videoId: videoIdRef.current,
               status: state === YT.PlayerState.PLAYING ? 'playing' : 'paused',
               currentTime: playerRef.current.getCurrentTime() || 0,
@@ -100,6 +101,7 @@ export function usePlayerSync(containerId) {
     const unsub = onValue(stateRef.current, (snap) => {
       if (!snap.exists() || localUpdateRef.current) return;
       const data = snap.val();
+      if (data.type && data.type !== 'youtube') return;
       const player = playerRef.current;
       const YT = window.YT;
       syncGuardRef.current = true;
@@ -138,6 +140,7 @@ export function usePlayerSync(containerId) {
     player.pauseVideo();
     localUpdateRef.current = true;
     set(stateRef.current, {
+      type: 'youtube',
       videoId: id,
       status: 'paused',
       currentTime: 0,
