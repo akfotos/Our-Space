@@ -332,11 +332,11 @@ function Chat() {
         <div ref={bottomRef} />
       </div>
 
-      <div className="p-3 bg-white/50 backdrop-blur-md border-t border-white/20 flex gap-2 items-end relative z-10">
+      <div className="p-3 bg-white/50 backdrop-blur-md border-t border-white/20 flex gap-2 items-center relative z-10">
         <button
           type="button"
           onClick={() => setMenuOpen((v) => !v)}
-          className="p-3 text-slate-500 hover:text-rose-700 hover:bg-white/50 rounded-2xl transition"
+          className="h-11 w-11 flex items-center justify-center shrink-0 text-slate-500 hover:text-rose-700 hover:bg-white/50 rounded-2xl transition"
         >
           {menuOpen ? <X size={22} /> : <Paperclip size={22} />}
         </button>
@@ -354,7 +354,7 @@ function Chat() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="flex-1 flex gap-2 items-end">
+        <form onSubmit={handleSubmit} className="flex-1 flex gap-2 items-center">
           <input
             ref={inputRef}
             type="text"
@@ -363,23 +363,23 @@ function Chat() {
             onBlur={onBlur}
             placeholder={editingId ? 'Edit message…' : 'Type a message or add a caption…'}
             disabled={!!editingId && false}
-            className="flex-1 px-5 py-3 rounded-2xl border border-white/30 focus:outline-none focus:ring-2 focus:ring-rose-300 bg-white/40 placeholder-slate-500 transition disabled:opacity-50"
+            className="flex-1 h-11 px-5 leading-[2.75rem] rounded-2xl border border-white/30 focus:outline-none focus:ring-2 focus:ring-rose-300 bg-white/40 placeholder-slate-500 transition disabled:opacity-50"
           />
           {editingId && (
             <button
               type="button"
               onClick={cancelEdit}
-              className="p-3.5 bg-white/60 text-slate-600 rounded-2xl hover:bg-white/80 transition"
+              className="h-11 w-11 flex items-center justify-center shrink-0 bg-white/60 text-slate-600 rounded-2xl hover:bg-white/80 transition"
             >
-              <X size={20} />
+              <X size={22} />
             </button>
           )}
           <button
             type="submit"
             disabled={editingId ? !editText.trim() : !text.trim()}
-            className="p-3.5 bg-rose-600 text-white rounded-2xl hover:bg-rose-700 disabled:opacity-50 transition-all hover:scale-105 shadow-lg hover:shadow-rose-500/30"
+            className="h-11 w-11 flex items-center justify-center shrink-0 bg-rose-600 text-white rounded-full hover:bg-rose-700 disabled:opacity-50 transition-all hover:scale-105 shadow-lg hover:shadow-rose-500/30"
           >
-            {editingId ? <Check size={20} /> : <Send size={20} />}
+            {editingId ? <Check size={22} /> : <Send size={22} />}
           </button>
         </form>
       </div>
