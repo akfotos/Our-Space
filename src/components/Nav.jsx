@@ -7,6 +7,7 @@ import {
   Play,
   Image,
   List,
+  Settings,
   Menu,
   X,
   LogOut,
@@ -29,6 +30,7 @@ function Nav() {
     { to: '/watch', label: 'Watch', icon: Play },
     { to: '/memories', label: 'Memories', icon: Image },
     { to: '/bucket', label: 'Bucket List', icon: List },
+    { to: '/settings', label: 'Settings', icon: Settings },
   ];
 
   if (!user) return null;

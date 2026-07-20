@@ -8,6 +8,7 @@ import Chat from './pages/Chat';
 import Player from './pages/Player';
 import MemoryWall from './pages/MemoryWall';
 import BucketList from './pages/BucketList';
+import Settings from './pages/Settings';
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
             <Route path="/watch" element={<PrivateRoute><Player /></PrivateRoute>} />
             <Route path="/memories" element={<PrivateRoute><MemoryWall /></PrivateRoute>} />
             <Route path="/bucket" element={<PrivateRoute><BucketList /></PrivateRoute>} />
+            <Route path="/settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
           </Routes>
         </main>
       </div>

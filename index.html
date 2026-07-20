@@ -5,6 +5,17 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Our Space</title>
+    <script>
+      (function () {
+        const stored = localStorage.getItem('darkMode');
+        if (
+          stored === 'true' ||
+          (stored === null && window.matchMedia('(prefers-color-scheme: dark)').matches)
+        ) {
+          document.documentElement.classList.add('dark');
+        }
+      })();
+    </script>
     <script src="https://www.youtube.com/iframe_api"></script>
   </head>
   <body>
