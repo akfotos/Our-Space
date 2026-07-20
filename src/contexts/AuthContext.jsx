@@ -8,6 +8,9 @@ import {
 import { auth, provider } from '../firebaseConfig';
 import { ALLOWED_EMAILS, USERS } from '../config';
 
+const allowedLower = ALLOWED_EMAILS.map((e) => e.toLowerCase());
+const isAllowed = (email) => allowedLower.includes(email?.toLowerCase());
+
 function getAuthErrorMessage(err) {
   const code = err?.code;
   switch (code) {
@@ -43,8 +46,8 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (u) => {
-      if (u && ALLOWED_EMAILS.includes(u.email)) {
-        const label = u.email === USERS.A.email ? USERS.A.name : USERS.B.name;
+      if (u && isAllowed(u.email)) {
+        const label = u.email?.toLowerCase() === USERS.A.email.toLowerCase() ? USERS.A.name : USERS.B.name;
         setUser({ ...u, displayName: label });
       } else if (u) {
         fbSignOut(auth);
@@ -62,7 +65,7 @@ export const AuthProvider = ({ children }) => {
     setError(null);
     try {
       const result = await signInWithPopup(auth, provider);
-      if (!ALLOWED_EMAILS.includes(result.user.email)) {
+      if (!isAllowed(result.user.email)) {
         await fbSignOut(auth);
         setError('This email is not allowed. Only Emmanuel and Sarah can use this app.');
       }
@@ -73,7 +76,7 @@ export const AuthProvider = ({ children }) => {
 
   const signInWithEmail = async (email, password) => {
     setError(null);
-    if (!ALLOWED_EMAILS.includes(email)) {
+    if (!isAllowed(email)) {
       setError('This email is not allowed. Only Emmanuel and Sarah can use this app.');
       return;
     }
