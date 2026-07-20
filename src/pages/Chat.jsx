@@ -5,6 +5,9 @@ import {
   Link as LinkIcon,
   X,
   Heart,
+  Check,
+  CheckCheck,
+  FileText,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useChat } from '../hooks/useChat';
@@ -24,14 +27,50 @@ function Chat() {
     sendLink,
     updateTyping,
     sendMissYou,
+    markDelivered,
+    markRead,
   } = useChat();
   const [text, setText] = useState('');
   const [menuOpen, setMenuOpen] = useState(false);
+  const [isVisible, setIsVisible] = useState(
+    document.visibilityState === 'visible' && document.hasFocus()
+  );
   const bottomRef = useRef(null);
+  const markedDeliveredRef = useRef(new Set());
+  const markedReadRef = useRef(new Set());
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  useEffect(() => {
+    const update = () =>
+      setIsVisible(document.visibilityState === 'visible' && document.hasFocus());
+    update();
+    document.addEventListener('visibilitychange', update);
+    window.addEventListener('focus', update);
+    window.addEventListener('blur', update);
+    return () => {
+      document.removeEventListener('visibilitychange', update);
+      window.removeEventListener('focus', update);
+      window.removeEventListener('blur', update);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!user) return;
+    messages.forEach((msg) => {
+      if (msg.uid === user.uid) return;
+      if (!msg.deliveredBy?.[user.uid] && !markedDeliveredRef.current.has(msg.id)) {
+        markedDeliveredRef.current.add(msg.id);
+        markDelivered(msg.id).catch(() => {});
+      }
+      if (isVisible && !msg.readBy?.[user.uid] && !markedReadRef.current.has(msg.id)) {
+        markedReadRef.current.add(msg.id);
+        markRead(msg.id).catch(() => {});
+      }
+    });
+  }, [messages, isVisible, user, markDelivered, markRead]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -47,6 +86,13 @@ function Chat() {
   };
 
   const onBlur = () => updateTyping(false);
+
+  const messageStatus = (msg) => {
+    const other = (key) => msg[key] && Object.keys(msg[key]).some((uid) => uid !== user.uid);
+    if (other('readBy')) return 'read';
+    if (other('deliveredBy')) return 'delivered';
+    return 'sent';
+  };
 
   const handleLink = async () => {
     const raw = window.prompt('Paste a link to share:');
@@ -158,6 +204,7 @@ function Chat() {
               })
             : '';
           const showAvatar = !isMe && (idx === 0 || messages[idx - 1].uid !== msg.uid);
+          const status = isMe ? messageStatus(msg) : null;
           return (
             <div
               key={msg.id}
@@ -186,11 +233,14 @@ function Chat() {
                 )}
                 {renderContent(msg)}
                 <p
-                  className={`text-[10px] mt-1.5 ${
+                  className={`text-[10px] mt-1.5 flex items-center gap-1 ${
                     isMe ? 'text-rose-100' : 'text-slate-400'
                   }`}
                 >
                   {time}
+                  {isMe && status === 'sent' && <Check size={12} className="opacity-70" />}
+                  {isMe && status === 'delivered' && <CheckCheck size={12} className="opacity-70" />}
+                  {isMe && status === 'read' && <CheckCheck size={12} className="text-blue-300" />}
                 </p>
               </div>
             </div>

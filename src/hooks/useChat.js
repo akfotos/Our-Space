@@ -162,6 +162,16 @@ export function useChat() {
     }, 5000);
   };
 
+  const markDelivered = async (messageId) => {
+    if (!user) return;
+    await set(ref(rtdb, `messages/${messageId}/deliveredBy/${user.uid}`), serverTimestamp());
+  };
+
+  const markRead = async (messageId) => {
+    if (!user) return;
+    await set(ref(rtdb, `messages/${messageId}/readBy/${user.uid}`), serverTimestamp());
+  };
+
   return {
     messages,
     typing,
@@ -172,5 +182,7 @@ export function useChat() {
     sendLink,
     updateTyping,
     sendMissYou,
+    markDelivered,
+    markRead,
   };
 }
