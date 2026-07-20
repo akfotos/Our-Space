@@ -21,5 +21,9 @@ service cloud.firestore {
     match /affirmations/{docId} {
       allow read, write: if isAllowed();
     }
+
+    match /bibleVerses/{docId} {
+      allow read, write: if isAllowed();
+    }
   }
 }

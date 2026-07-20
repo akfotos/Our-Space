@@ -7,6 +7,7 @@ import MissYouButton from '../components/MissYouButton';
 import DailyQuote from '../components/DailyQuote';
 import DistanceCard from '../components/DistanceCard';
 import Affirmations from '../components/Affirmations';
+import BibleQuote from '../components/BibleQuote';
 import { USERS } from '../config';
 
 function Dashboard() {
@@ -36,6 +37,10 @@ function Dashboard() {
           Distance makes the heart grow fonder.
         </p>
       </header>
+
+      <section className="animate-fade-in-up [animation-delay:0.05s]">
+        <BibleQuote />
+      </section>
 
       <section className="animate-fade-in-up [animation-delay:0.1s]">
         <Countdown />
