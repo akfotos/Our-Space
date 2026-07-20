@@ -2,11 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import {
   Send,
   Paperclip,
-  Monitor,
-  FileText,
   Link as LinkIcon,
   X,
-  Loader2,
   Heart,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
@@ -24,19 +21,13 @@ function Chat() {
     typing,
     missYou,
     sendMessage,
-    sendFile,
-    sendScreen,
     sendLink,
     updateTyping,
     sendMissYou,
   } = useChat();
   const [text, setText] = useState('');
   const [menuOpen, setMenuOpen] = useState(false);
-  const [uploading, setUploading] = useState(false);
-  const [progress, setProgress] = useState(0);
   const bottomRef = useRef(null);
-  const fileInputRef = useRef(null);
-  const screenInputRef = useRef(null);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -44,7 +35,7 @@ function Chat() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!text.trim() || uploading) return;
+    if (!text.trim()) return;
     await sendMessage(text);
     setText('');
     updateTyping(false);
@@ -56,82 +47,6 @@ function Chat() {
   };
 
   const onBlur = () => updateTyping(false);
-
-  const startUpload = () => {
-    setUploading(true);
-    setProgress(0);
-    setMenuOpen(false);
-    updateTyping(false);
-  };
-
-  const finishUpload = () => {
-    setUploading(false);
-    setProgress(0);
-  };
-
-  const handleFile = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file || uploading) return;
-    e.target.value = '';
-    let type = 'file';
-    if (file.type.startsWith('image/')) type = 'image';
-    else if (file.type.startsWith('video/')) type = 'video';
-    startUpload();
-    try {
-      await sendFile(file, type, text, setProgress);
-      setText('');
-    } finally {
-      finishUpload();
-    }
-  };
-
-  const handleScreenShare = async () => {
-    if (uploading) return;
-    if (!navigator.mediaDevices?.getDisplayMedia) {
-      setMenuOpen(false);
-      screenInputRef.current?.click();
-      return;
-    }
-    let stream;
-    try {
-      stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
-    } catch {
-      return;
-    }
-
-    const video = document.createElement('video');
-    video.srcObject = stream;
-    video.muted = true;
-    video.playsInline = true;
-
-    await new Promise((resolve) => {
-      video.onloadedmetadata = () => resolve();
-      video.play();
-    });
-
-    await new Promise((r) => setTimeout(r, 400));
-
-    const canvas = document.createElement('canvas');
-    canvas.width = video.videoWidth || 1280;
-    canvas.height = video.videoHeight || 720;
-    canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
-    stream.getTracks().forEach((track) => track.stop());
-
-    canvas.toBlob(
-      async (blob) => {
-        if (!blob) return;
-        startUpload();
-        try {
-          await sendScreen(blob, text, setProgress);
-          setText('');
-        } finally {
-          finishUpload();
-        }
-      },
-      'image/png',
-      0.92
-    );
-  };
 
   const handleLink = async () => {
     const raw = window.prompt('Paste a link to share:');
@@ -285,63 +200,17 @@ function Chat() {
         <div ref={bottomRef} />
       </div>
 
-      {uploading && (
-        <div className="px-5 py-2 bg-white/70 backdrop-blur-md border-t border-white/20">
-          <div className="flex items-center gap-2 text-xs text-slate-600 font-medium">
-            <Loader2 size={14} className="animate-spin" />
-            Uploading… {progress}%
-          </div>
-          <div className="mt-2 h-1.5 w-full bg-rose-100/60 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-rose-600 transition-all"
-              style={{ width: `${progress}%` }}
-            />
-          </div>
-        </div>
-      )}
-
       <div className="p-3 bg-white/50 backdrop-blur-md border-t border-white/20 flex gap-2 items-end relative z-10">
-        <input
-          type="file"
-          ref={fileInputRef}
-          onChange={handleFile}
-          className="hidden"
-        />
-        <input
-          type="file"
-          accept="image/*,video/*"
-          ref={screenInputRef}
-          onChange={handleFile}
-          className="hidden"
-        />
-
         <button
           type="button"
           onClick={() => setMenuOpen((v) => !v)}
-          disabled={uploading}
-          className="p-3 text-slate-500 hover:text-rose-700 hover:bg-white/50 rounded-2xl transition disabled:opacity-50"
+          className="p-3 text-slate-500 hover:text-rose-700 hover:bg-white/50 rounded-2xl transition"
         >
           {menuOpen ? <X size={22} /> : <Paperclip size={22} />}
         </button>
 
-        {menuOpen && !uploading && (
+        {menuOpen && (
           <div className="absolute bottom-full left-4 mb-3 bg-white/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/30 p-2 flex gap-2 animate-pop-in">
-            <button
-              type="button"
-              onClick={handleScreenShare}
-              className="flex flex-col items-center gap-1 p-2.5 rounded-xl hover:bg-rose-50/70 hover:scale-105 transition text-xs text-slate-600 min-w-[4rem]"
-            >
-              <Monitor size={20} className="text-rose-600" />
-              Screen
-            </button>
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              className="flex flex-col items-center gap-1 p-2.5 rounded-xl hover:bg-rose-50/70 hover:scale-105 transition text-xs text-slate-600 min-w-[4rem]"
-            >
-              <FileText size={20} className="text-rose-600" />
-              File
-            </button>
             <button
               type="button"
               onClick={handleLink}
@@ -359,13 +228,12 @@ function Chat() {
             value={text}
             onChange={onChange}
             onBlur={onBlur}
-            disabled={uploading}
             placeholder="Type a message or add a caption…"
             className="flex-1 px-5 py-3 rounded-2xl border border-white/30 focus:outline-none focus:ring-2 focus:ring-rose-300 bg-white/40 placeholder-slate-500 transition disabled:opacity-50"
           />
           <button
             type="submit"
-            disabled={!text.trim() || uploading}
+            disabled={!text.trim()}
             className="p-3.5 bg-rose-600 text-white rounded-2xl hover:bg-rose-700 disabled:opacity-50 transition-all hover:scale-105 shadow-lg hover:shadow-rose-500/30"
           >
             <Send size={20} />
