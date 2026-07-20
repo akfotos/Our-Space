@@ -19,6 +19,10 @@ export const USERS = {
 
 export const ALLOWED_EMAILS = [USERS.A.email, USERS.B.email];
 
+export const EMAILJS_SERVICE_ID = 'service_qhvt5zj';
+export const EMAILJS_TEMPLATE_ID = 'template_galbk6y';
+export const EMAILJS_PUBLIC_KEY = '425DVW5KuK2XfGZxo';
+
 export const REUNION_DATE = new Date('2099-12-31T23:59:59Z');
 
 export const MAX_TYPING_IDLE_MS = 5000;

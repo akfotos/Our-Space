@@ -17,7 +17,13 @@ import {
 } from 'firebase/storage';
 import { rtdb, storage } from '../firebaseConfig';
 import { useAuth } from '../contexts/AuthContext';
-import { MAX_TYPING_IDLE_MS } from '../config';
+import {
+  MAX_TYPING_IDLE_MS,
+  USERS,
+  EMAILJS_SERVICE_ID,
+  EMAILJS_TEMPLATE_ID,
+  EMAILJS_PUBLIC_KEY,
+} from '../config';
 
 function chatFileName(file) {
   const ext = file.name ? file.name.split('.').pop() : '';
@@ -171,6 +177,31 @@ export function useChat() {
       uid: user.uid,
       timestamp: serverTimestamp(),
     });
+
+    try {
+      const otherEmail =
+        user.email?.toLowerCase() === USERS.A.email.toLowerCase()
+          ? USERS.B.email
+          : USERS.A.email;
+
+      await fetch('https://api.emailjs.com/api/v1.0/email/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          service_id: EMAILJS_SERVICE_ID,
+          template_id: EMAILJS_TEMPLATE_ID,
+          user_id: EMAILJS_PUBLIC_KEY,
+          template_params: {
+            to_email: otherEmail,
+            from_name: user.displayName,
+            message: `${user.displayName} sent you a Miss You ping from Our Space! ❤️`,
+          },
+        }),
+      });
+    } catch (err) {
+      console.error('EmailJS send failed', err);
+    }
+
     setTimeout(() => {
       remove(ref(rtdb, 'missYou')).catch(() => {});
     }, 5000);
