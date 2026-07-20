@@ -1,50 +1,30 @@
 import { useEffect, useRef, useState } from 'react';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { useAuth } from '../contexts/AuthContext';
+import { useSettings } from '../contexts/SettingsContext';
 import { auth } from '../firebaseConfig';
 import { Lock, Fingerprint, LogOut } from 'lucide-react';
+import {
+  supportsBiometric,
+  hasCredential,
+  clearCredential,
+  authenticateCredential,
+} from '../utils/biometric';
 
 const LOCK_MS = 10 * 60 * 1000;
 const LOCKED_KEY = 'our-space-locked';
 const LAST_KEY = 'our-space-last-activity';
-const BIO_KEY = 'our-space-biometric-id';
-
-function bufferToBase64url(buffer) {
-  const bytes = new Uint8Array(buffer);
-  let binary = '';
-  bytes.forEach((b) => (binary += String.fromCharCode(b)));
-  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-}
-
-function base64urlToBuffer(str) {
-  const base64 = str.replace(/-/g, '+').replace(/_/g, '/');
-  const pad = (4 - (base64.length % 4)) % 4;
-  const padded = base64 + '='.repeat(pad);
-  const binary = atob(padded);
-  const bytes = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i++) {
-    bytes[i] = binary.charCodeAt(i);
-  }
-  return bytes.buffer;
-}
-
-function supportsBiometric() {
-  return (
-    typeof window !== 'undefined' &&
-    window.PublicKeyCredential &&
-    typeof window.PublicKeyCredential === 'function'
-  );
-}
 
 function ScreenLock() {
   const { user, signOut } = useAuth();
+  const { settings } = useSettings();
   const [locked, setLocked] = useState(() => {
     if (typeof window === 'undefined') return false;
     return localStorage.getItem(LOCKED_KEY) === 'true';
   });
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const [hasCredential, setHasCredential] = useState(false);
+  const [credentialReady, setCredentialReady] = useState(false);
   const [bioError, setBioError] = useState('');
   const lastActivityRef = useRef(Date.now());
 
@@ -55,7 +35,7 @@ function ScreenLock() {
       setLocked(true);
       localStorage.setItem(LOCKED_KEY, 'true');
     }
-    setHasCredential(!!localStorage.getItem(BIO_KEY));
+    setCredentialReady(hasCredential());
   }, []);
 
   useEffect(() => {
@@ -105,56 +85,21 @@ function ScreenLock() {
   };
 
   const handleBiometric = async () => {
-    if (!supportsBiometric()) {
+    if (!settings.faceLock || !supportsBiometric()) {
       setBioError('Your device/browser does not support face or fingerprint unlock.');
       return;
     }
 
-    const storedId = localStorage.getItem(BIO_KEY);
-    if (storedId) {
-      try {
-        const rawId = base64urlToBuffer(storedId);
-        const challenge = crypto.getRandomValues(new Uint8Array(32));
-        const publicKey = {
-          challenge,
-          rpId: window.location.hostname,
-          allowCredentials: [{ id: rawId, type: 'public-key', transports: ['internal'] }],
-          userVerification: 'required',
-          timeout: 60000,
-        };
-        const cred = await navigator.credentials.get({ publicKey });
-        if (cred) unlock();
-      } catch {
-        setBioError('Biometric unlock failed. Use your password.');
-      }
+    if (!hasCredential()) {
+      setBioError('No face/fingerprint credential found. Set it up in Settings.');
       return;
     }
 
     try {
-      const challenge = crypto.getRandomValues(new Uint8Array(32));
-      const userId = new TextEncoder().encode(user.uid);
-      const publicKey = {
-        challenge,
-        rp: { name: 'Our Space', id: window.location.hostname },
-        user: { id: userId, name: user.email || user.uid, displayName: user.displayName || 'Our Space user' },
-        pubKeyCredParams: [
-          { type: 'public-key', alg: -7 },
-          { type: 'public-key', alg: -257 },
-        ],
-        authenticatorSelection: {
-          authenticatorAttachment: 'platform',
-          userVerification: 'required',
-        },
-        timeout: 60000,
-      };
-      const cred = await navigator.credentials.create({ publicKey });
-      if (cred) {
-        localStorage.setItem(BIO_KEY, bufferToBase64url(cred.rawId));
-        setHasCredential(true);
-        unlock();
-      }
-    } catch {
-      setBioError('Could not set up biometric unlock. Use your password.');
+      const success = await authenticateCredential();
+      if (success) unlock();
+    } catch (err) {
+      setBioError(err.message || 'Biometric unlock failed. Use your password.');
     }
   };
 
@@ -162,7 +107,7 @@ function ScreenLock() {
     await signOut();
     localStorage.removeItem(LOCKED_KEY);
     localStorage.removeItem(LAST_KEY);
-    localStorage.removeItem(BIO_KEY);
+    clearCredential();
   };
 
   if (!locked || !user) return null;
@@ -196,14 +141,14 @@ function ScreenLock() {
           </button>
         </form>
 
-        {supportsBiometric() && (
+        {settings.faceLock && supportsBiometric() && credentialReady && (
           <button
             type="button"
             onClick={handleBiometric}
             className="w-full flex items-center justify-center gap-2 py-2.5 bg-white/40 hover:bg-white/60 text-slate-700 rounded-xl font-semibold transition mb-3"
           >
             <Fingerprint size={18} className="text-rose-600" />
-            {hasCredential ? 'Unlock with Face/Fingerprint' : 'Set up Face/Fingerprint'}
+            Unlock with Face/Fingerprint
           </button>
         )}
         {bioError && <p className="text-sm text-red-600 mb-3">{bioError}</p>}

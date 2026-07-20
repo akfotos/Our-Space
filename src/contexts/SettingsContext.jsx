@@ -14,6 +14,7 @@ const defaults = {
   showAffirmations: true,
   showCheckIn: true,
   showMissYou: true,
+  faceLock: false,
 };
 
 function loadSettings() {

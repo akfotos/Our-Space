@@ -1,5 +1,22 @@
-import { Moon, Sun, Settings as SettingsIcon, Calendar, Clock, Layout } from 'lucide-react';
+import { useState } from 'react';
+import {
+  Moon,
+  Sun,
+  Settings as SettingsIcon,
+  Calendar,
+  Clock,
+  Layout,
+  Lock,
+  Fingerprint,
+} from 'lucide-react';
 import { useSettings } from '../contexts/SettingsContext';
+import { useAuth } from '../contexts/AuthContext';
+import {
+  supportsBiometric,
+  registerCredential,
+  clearCredential,
+  hasCredential,
+} from '../utils/biometric';
 
 function Toggle({ label, description, checked, onChange }) {
   return (
@@ -40,6 +57,31 @@ function Card({ icon: Icon, title, children }) {
 
 function Settings() {
   const { settings, setSetting } = useSettings();
+  const { user } = useAuth();
+  const [faceError, setFaceError] = useState('');
+
+  const handleFaceLock = async (enabled) => {
+    setFaceError('');
+    if (enabled) {
+      if (!supportsBiometric()) {
+        setFaceError('Your device/browser does not support face or fingerprint unlock.');
+        return;
+      }
+      if (!user) {
+        setFaceError('You must be signed in to set up face recognition lock.');
+        return;
+      }
+      try {
+        await registerCredential(user);
+        setSetting('faceLock', true);
+      } catch (err) {
+        setFaceError(err.message || 'Could not set up face recognition lock.');
+      }
+    } else {
+      clearCredential();
+      setSetting('faceLock', false);
+    }
+  };
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
@@ -116,6 +158,21 @@ function Settings() {
           checked={settings.showMissYou}
           onChange={(v) => setSetting('showMissYou', v)}
         />
+      </Card>
+
+      <Card icon={Lock} title="Security">
+        <Toggle
+          label="Face recognition lock"
+          description="Use Face ID, fingerprint or Windows Hello to unlock the app"
+          checked={settings.faceLock && hasCredential()}
+          onChange={handleFaceLock}
+        />
+        {faceError && <p className="text-sm text-red-600">{faceError}</p>}
+        {!supportsBiometric() && (
+          <p className="text-sm text-slate-500">
+            Your device or browser does not support biometric authentication.
+          </p>
+        )}
       </Card>
     </div>
   );
