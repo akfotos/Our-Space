@@ -8,6 +8,8 @@ import {
   Check,
   CheckCheck,
   FileText,
+  Pencil,
+  Trash2,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useChat } from '../hooks/useChat';
@@ -29,13 +31,18 @@ function Chat() {
     sendMissYou,
     markDelivered,
     markRead,
+    editMessage,
+    deleteMessage,
   } = useChat();
   const [text, setText] = useState('');
   const [menuOpen, setMenuOpen] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const [editText, setEditText] = useState('');
   const [isVisible, setIsVisible] = useState(
     document.visibilityState === 'visible' && document.hasFocus()
   );
   const bottomRef = useRef(null);
+  const inputRef = useRef(null);
   const markedDeliveredRef = useRef(new Set());
   const markedReadRef = useRef(new Set());
 
@@ -72,8 +79,36 @@ function Chat() {
     });
   }, [messages, isVisible, user, markDelivered, markRead]);
 
+  const startEdit = (msg) => {
+    setEditingId(msg.id);
+    setEditText(msg.text || '');
+    setMenuOpen(false);
+    setTimeout(() => inputRef.current?.focus(), 0);
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+    setEditText('');
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Delete this message?')) return;
+    await deleteMessage(id);
+    if (editingId === id) cancelEdit();
+  };
+
+  const canEdit = (msg) =>
+    msg.uid === user?.uid && (msg.type === 'text' || !msg.type);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (editingId) {
+      if (!editText.trim()) return;
+      await editMessage(editingId, editText);
+      setEditingId(null);
+      setEditText('');
+      return;
+    }
     if (!text.trim()) return;
     await sendMessage(text);
     setText('');
@@ -81,11 +116,18 @@ function Chat() {
   };
 
   const onChange = (e) => {
-    setText(e.target.value);
-    if (e.target.value.trim()) updateTyping(true);
+    const value = e.target.value;
+    if (editingId) {
+      setEditText(value);
+      return;
+    }
+    setText(value);
+    if (value.trim()) updateTyping(true);
   };
 
-  const onBlur = () => updateTyping(false);
+  const onBlur = () => {
+    if (!editingId) updateTyping(false);
+  };
 
   const messageStatus = (msg) => {
     const other = (key) => msg[key] && Object.keys(msg[key]).some((uid) => uid !== user.uid);
@@ -95,6 +137,7 @@ function Chat() {
   };
 
   const handleLink = async () => {
+    if (editingId) return;
     const raw = window.prompt('Paste a link to share:');
     if (!raw) return;
     const url = raw.trim();
@@ -231,6 +274,30 @@ function Chat() {
                 {!isMe && (
                   <p className="text-xs font-semibold text-rose-700 mb-1">{msg.name}</p>
                 )}
+                {isMe && (
+                  <div className="flex justify-end gap-1.5 mb-1 -mt-1 -mr-1">
+                    {canEdit(msg) && (
+                      <button
+                        type="button"
+                        onClick={() => startEdit(msg)}
+                        className="p-1 rounded-full hover:bg-white/20 text-rose-100 hover:text-white transition"
+                        aria-label="Edit message"
+                        title="Edit message"
+                      >
+                        <Pencil size={12} />
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => handleDelete(msg.id)}
+                      className="p-1 rounded-full hover:bg-white/20 text-rose-100 hover:text-white transition"
+                      aria-label="Delete message"
+                      title="Delete message"
+                    >
+                      <Trash2 size={12} />
+                    </button>
+                  </div>
+                )}
                 {renderContent(msg)}
                 <p
                   className={`text-[10px] mt-1.5 flex items-center gap-1 ${
@@ -238,6 +305,7 @@ function Chat() {
                   }`}
                 >
                   {time}
+                  {msg.editedAt && <span className="italic opacity-80">edited</span>}
                   {isMe && status === 'sent' && <Check size={12} className="opacity-70" />}
                   {isMe && status === 'delivered' && <CheckCheck size={12} className="opacity-70" />}
                   {isMe && status === 'read' && <CheckCheck size={12} className="text-blue-300" />}
@@ -274,19 +342,30 @@ function Chat() {
 
         <form onSubmit={handleSubmit} className="flex-1 flex gap-2 items-end">
           <input
+            ref={inputRef}
             type="text"
-            value={text}
+            value={editingId ? editText : text}
             onChange={onChange}
             onBlur={onBlur}
-            placeholder="Type a message or add a caption…"
+            placeholder={editingId ? 'Edit message…' : 'Type a message or add a caption…'}
+            disabled={!!editingId && false}
             className="flex-1 px-5 py-3 rounded-2xl border border-white/30 focus:outline-none focus:ring-2 focus:ring-rose-300 bg-white/40 placeholder-slate-500 transition disabled:opacity-50"
           />
+          {editingId && (
+            <button
+              type="button"
+              onClick={cancelEdit}
+              className="p-3.5 bg-white/60 text-slate-600 rounded-2xl hover:bg-white/80 transition"
+            >
+              <X size={20} />
+            </button>
+          )}
           <button
             type="submit"
-            disabled={!text.trim()}
+            disabled={editingId ? !editText.trim() : !text.trim()}
             className="p-3.5 bg-rose-600 text-white rounded-2xl hover:bg-rose-700 disabled:opacity-50 transition-all hover:scale-105 shadow-lg hover:shadow-rose-500/30"
           >
-            <Send size={20} />
+            {editingId ? <Check size={20} /> : <Send size={20} />}
           </button>
         </form>
       </div>

@@ -8,6 +8,7 @@ import {
   push,
   serverTimestamp,
   set,
+  update,
   remove,
 } from 'firebase/database';
 import {
@@ -222,6 +223,19 @@ export function useChat() {
     await set(ref(rtdb, `messages/${messageId}/readBy/${user.uid}`), serverTimestamp());
   };
 
+  const editMessage = async (messageId, newText) => {
+    if (!user || !newText.trim()) return;
+    await update(ref(rtdb, `messages/${messageId}`), {
+      text: newText.trim(),
+      editedAt: serverTimestamp(),
+    });
+  };
+
+  const deleteMessage = async (messageId) => {
+    if (!user) return;
+    await remove(ref(rtdb, `messages/${messageId}`));
+  };
+
   return {
     messages,
     typing,
@@ -235,5 +249,7 @@ export function useChat() {
     sendMissYou,
     markDelivered,
     markRead,
+    editMessage,
+    deleteMessage,
   };
 }

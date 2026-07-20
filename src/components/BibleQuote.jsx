@@ -9,10 +9,18 @@ import {
   serverTimestamp,
   doc,
   setDoc,
+  deleteDoc,
 } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 import { useAuth } from '../contexts/AuthContext';
-import { BookOpen, Send, Search, RefreshCw } from 'lucide-react';
+import {
+  BookOpen,
+  Send,
+  Search,
+  RefreshCw,
+  Trash2,
+  X,
+} from 'lucide-react';
 
 const VERSIONS = [
   { slug: 'niv', name: 'NIV' },
@@ -56,11 +64,29 @@ function BibleQuote() {
 
   const saveSharedVerse = async (next) => {
     if (!user) return;
-    await setDoc(
-      sharedDoc,
-      { ...next, updatedBy: user.displayName, timestamp: serverTimestamp() },
-      { merge: true }
-    );
+    await setDoc(sharedDoc, {
+      ...next,
+      updatedBy: user.displayName,
+      timestamp: serverTimestamp(),
+      cleared: false,
+    });
+  };
+
+  const clearSharedVerse = async () => {
+    if (!user) return;
+    await setDoc(sharedDoc, {
+      reference: '',
+      text: '',
+      version,
+      updatedBy: user.displayName,
+      timestamp: serverTimestamp(),
+      cleared: true,
+    });
+    setVerse(null);
+  };
+
+  const deleteVerse = async (id) => {
+    await deleteDoc(doc(db, 'bibleVerses', id));
   };
 
   const fetchVOTD = async (ver, sync = false) => {
@@ -163,15 +189,17 @@ function BibleQuote() {
     const unsub = onSnapshot(sharedDoc, (snap) => {
       if (snap.exists()) {
         const data = snap.data();
-        if (data.version) setVersion(data.version);
-        if (data.text) {
+        if (data.version && !data.cleared) setVersion(data.version);
+        if (data.text && !data.cleared) {
           setVerse({
             reference: data.reference,
             text: data.text,
             version: data.version,
           });
-          setLoading(false);
+        } else {
+          setVerse(null);
         }
+        setLoading(false);
       } else {
         fetchVOTD(version, false);
       }
@@ -238,26 +266,40 @@ function BibleQuote() {
       <div className="bg-white/40 backdrop-blur-sm rounded-2xl p-5 border border-white/30 mb-4">
         {loading ? (
           <p className="text-slate-500 italic">Loading passage…</p>
-        ) : (
+        ) : verse?.text ? (
           <>
             <div className="max-h-80 overflow-y-auto pr-2 scrollbar-thin">
               <p className="text-slate-700 leading-relaxed italic text-lg">
-                &ldquo;{verse?.text}&rdquo;
+                &ldquo;{verse.text}&rdquo;
               </p>
             </div>
             <p className="mt-2 text-sm font-bold text-rose-700">
-              {verse?.reference} ({verse?.version?.toUpperCase()})
+              {verse.reference} ({verse.version?.toUpperCase()})
             </p>
           </>
+        ) : (
+          <p className="text-slate-500 italic">No shared verse selected.</p>
         )}
-        <button
-          onClick={sendVerse}
-          disabled={loading || sending || !verse?.text.trim()}
-          className="mt-4 flex items-center gap-2 px-4 py-2 bg-rose-600 hover:bg-rose-700 disabled:opacity-50 text-white rounded-xl font-medium transition"
-        >
-          <Send size={16} />
-          {sending ? 'Sending…' : 'Send to us'}
-        </button>
+        <div className="mt-4 flex flex-wrap gap-2">
+          <button
+            onClick={sendVerse}
+            disabled={loading || sending || !verse?.text.trim()}
+            className="flex items-center gap-2 px-4 py-2 bg-rose-600 hover:bg-rose-700 disabled:opacity-50 text-white rounded-xl font-medium transition"
+          >
+            <Send size={16} />
+            {sending ? 'Sending…' : 'Send to us'}
+          </button>
+          {verse?.text && (
+            <button
+              type="button"
+              onClick={clearSharedVerse}
+              className="flex items-center gap-2 px-4 py-2 bg-white/40 hover:bg-white/60 text-slate-700 rounded-xl font-medium transition"
+            >
+              <X size={16} />
+              Clear shared
+            </button>
+          )}
+        </div>
       </div>
 
       <form onSubmit={fetchByReference} className="flex flex-col sm:flex-row gap-2">
@@ -301,7 +343,18 @@ function BibleQuote() {
                 <span className="font-semibold text-rose-700">
                   {item.reference} ({item.version?.toUpperCase()}) · {item.name}
                 </span>
-                <span className="text-slate-500">{formatTime(item.timestamp)}</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-slate-500">{formatTime(item.timestamp)}</span>
+                  <button
+                    type="button"
+                    onClick={() => deleteVerse(item.id)}
+                    className="p-1 rounded-full hover:bg-red-50 text-slate-400 hover:text-red-600 transition"
+                    aria-label="Delete verse"
+                    title="Delete verse"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
               </div>
             </div>
           ))}
