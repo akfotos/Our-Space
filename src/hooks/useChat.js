@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ref,
   query,
@@ -40,6 +40,11 @@ export function useChat() {
   const [typing, setTypingState] = useState({});
   const [missYou, setMissYou] = useState(null);
   const typingTimeoutRef = useRef(null);
+
+  const unreadCount = useMemo(() => {
+    if (!user) return 0;
+    return messages.filter((m) => m.uid !== user.uid && !m.readBy?.[user.uid]).length;
+  }, [messages, user]);
 
   useEffect(() => {
     const messagesRef = query(
@@ -221,6 +226,7 @@ export function useChat() {
     messages,
     typing,
     missYou,
+    unreadCount,
     sendMessage,
     sendFile,
     sendScreen,

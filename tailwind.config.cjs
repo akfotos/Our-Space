@@ -59,6 +59,15 @@ module.exports = {
           '0%, 100%': { transform: 'translateY(0)' },
           '50%': { transform: 'translateY(-3px)' },
         },
+        bubble: {
+          '0%': { transform: 'translateY(0) translateX(0)', opacity: '0' },
+          '5%': { opacity: '0.4' },
+          '25%': { transform: 'translateY(-25vh) translateX(15px)' },
+          '50%': { transform: 'translateY(-50vh) translateX(-10px)' },
+          '75%': { transform: 'translateY(-75vh) translateX(10px)' },
+          '95%': { opacity: '0.4' },
+          '100%': { transform: 'translateY(-120vh) translateX(-15px)', opacity: '0' },
+        },
       },
       animation: {
         'fade-in-up': 'fadeInUp 0.35s ease-out forwards',
@@ -67,6 +76,7 @@ module.exports = {
         'pop-in': 'popIn 0.25s ease-out forwards',
         'pulse-soft': 'pulseSoft 1.4s infinite',
         'float': 'float 3s ease-in-out infinite',
+        'bubble': 'bubble 15s linear infinite',
       },
     },
   },

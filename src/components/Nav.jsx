@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useChat } from '../hooks/useChat';
 import {
   Heart,
   MessageCircle,
@@ -14,6 +15,7 @@ import {
 
 function Nav() {
   const { user, signOut } = useAuth();
+  const { unreadCount } = useChat();
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
@@ -52,16 +54,23 @@ function Nav() {
           {links.map((l) => {
             const Icon = l.icon;
             const active = pathname === l.to;
+            const isChat = l.to === '/chat';
+            const showBadge = isChat && unreadCount > 0;
             return (
               <Link
                 key={l.to}
                 to={l.to}
-                className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition ${
+                className={`relative flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition ${
                   active ? 'bg-rose-100 text-rose-700' : 'text-slate-600 hover:bg-rose-50'
                 }`}
               >
                 <Icon size={18} />
                 {l.label}
+                {showBadge && (
+                  <span className="absolute -top-1 -right-1 flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-rose-600 px-1 text-[10px] font-bold text-white shadow">
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </span>
+                )}
               </Link>
             );
           })}
@@ -84,6 +93,8 @@ function Nav() {
           {links.map((l) => {
             const Icon = l.icon;
             const active = pathname === l.to;
+            const isChat = l.to === '/chat';
+            const showBadge = isChat && unreadCount > 0;
             return (
               <Link
                 key={l.to}
@@ -95,6 +106,11 @@ function Nav() {
               >
                 <Icon size={18} />
                 {l.label}
+                {showBadge && (
+                  <span className="ml-2 flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-rose-600 px-1 text-[10px] font-bold text-white shadow">
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </span>
+                )}
               </Link>
             );
           })}

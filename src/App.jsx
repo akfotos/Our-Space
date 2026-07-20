@@ -3,6 +3,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import { SettingsProvider } from './contexts/SettingsContext';
 import PrivateRoute from './components/PrivateRoute';
 import Nav from './components/Nav';
+import BubbleBackground from './components/BubbleBackground';
 import Auth from './components/Auth';
 import Dashboard from './pages/Dashboard';
 import Chat from './pages/Chat';
@@ -14,9 +15,10 @@ function App() {
   return (
     <SettingsProvider>
       <AuthProvider>
-        <div className="min-h-screen flex flex-col">
+        <div className="relative min-h-screen flex flex-col">
+        <BubbleBackground />
         <Nav />
-        <main className="flex-1 p-4 sm:p-6">
+        <main className="relative z-10 flex-1 p-4 sm:p-6">
           <Routes>
             <Route path="/login" element={<Auth />} />
             <Route path="/" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
