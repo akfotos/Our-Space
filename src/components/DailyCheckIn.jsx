@@ -45,13 +45,19 @@ function DailyCheckIn() {
     await setDoc(docRef, updates, { merge: true });
   };
 
-  if (loading) return <div className="p-5 text-sm text-slate-500">Loading check-in...</div>;
+  if (loading) return (
+    <section className="bg-gradient-to-br from-white/70 to-white/40 backdrop-blur-xl border border-white/30 rounded-3xl p-6 shadow-xl">
+      <p className="text-sm text-slate-500">Loading check-in…</p>
+    </section>
+  );
 
   const myMood = today?.[user.uid]?.mood;
 
   return (
-    <section className="bg-white rounded-2xl shadow-sm border border-rose-100 p-5">
-      <h2 className="text-lg font-semibold text-slate-700 mb-3">Daily Check-in</h2>
+    <section className="relative overflow-hidden bg-gradient-to-br from-white/70 to-white/40 backdrop-blur-xl border border-white/30 rounded-3xl p-6 shadow-xl transition hover:scale-[1.02]">
+      <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-rose-700/70 mb-4">
+        Daily Check-in
+      </h2>
       <div className="flex flex-wrap gap-2">
         {MOODS.map(({ key, label, icon: Icon, color }) => {
           const active = myMood === key;
@@ -59,26 +65,26 @@ function DailyCheckIn() {
             <button
               key={key}
               onClick={() => handleMood(key)}
-              className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-sm font-medium transition ${
+              className={`flex items-center gap-2 px-3.5 py-2.5 rounded-2xl text-sm font-semibold transition-all hover:scale-105 ${
                 active
-                  ? 'border-rose-300 bg-rose-50 text-rose-700'
-                  : 'border-slate-200 hover:border-rose-200 hover:bg-rose-50 text-slate-600'
+                  ? 'bg-rose-600/90 backdrop-blur-sm text-white shadow-md'
+                  : 'bg-white/40 border border-white/30 hover:bg-white/60 text-slate-600'
               }`}
             >
-              <Icon size={18} className={active ? color : ''} />
+              <Icon size={18} className={active ? color : 'opacity-70'} />
               {label}
             </button>
           );
         })}
       </div>
-      {today && (
-        <div className="mt-4 space-y-1">
+      {today && Object.keys(today).some((k) => k !== 'updatedAt') && (
+        <div className="mt-5 pt-4 border-t border-white/30 space-y-2">
           {Object.entries(today)
             .filter(([key]) => key !== 'updatedAt')
             .map(([uid, data]) => (
-              <p key={uid} className="text-sm text-slate-600">
-                <span className="font-medium">{data.name}</span> is feeling{' '}
-                <span className="capitalize">{data.mood}</span>
+              <p key={uid} className="text-sm text-slate-700">
+                <span className="font-semibold text-rose-700">{data.name}</span> is feeling{' '}
+                <span className="capitalize font-medium">{data.mood}</span>
               </p>
             ))}
         </div>

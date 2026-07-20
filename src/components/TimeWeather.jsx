@@ -6,6 +6,7 @@ import {
   CloudLightning,
   Snowflake,
   CloudFog,
+  MapPin,
 } from 'lucide-react';
 
 function weatherIcon(code) {
@@ -55,16 +56,21 @@ function TimeWeather({ profile }) {
   }, [profile.lat, profile.lon]);
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-rose-100 p-5 flex items-center justify-between">
+    <div className="group relative overflow-hidden bg-gradient-to-br from-white/70 to-white/40 backdrop-blur-xl border border-white/30 rounded-3xl p-6 shadow-xl transition hover:scale-[1.02] hover:shadow-2xl flex items-center justify-between">
       <div>
-        <p className="text-sm font-medium text-slate-500">{profile.location}</p>
-        <p className="text-xs text-slate-400">{profile.name}</p>
-        <p className="mt-2 text-2xl font-bold text-rose-600 tabular-nums">{time}</p>
+        <p className="text-sm font-bold text-rose-700/80 flex items-center gap-1.5">
+          <MapPin size={14} className="text-rose-600" />
+          {profile.location}
+        </p>
+        <p className="text-xs text-slate-500 mt-0.5">{profile.name}&apos;s time</p>
+        <p className="mt-3 text-3xl sm:text-4xl font-black text-slate-800 tabular-nums">
+          {time}
+        </p>
       </div>
       {weather && (
-        <div className="flex flex-col items-end gap-1">
-          {weatherIcon(weather.weathercode)}
-          <span className="text-lg font-semibold text-slate-700">
+        <div className="flex flex-col items-end gap-2">
+          <div className="transform group-hover:scale-110 transition">{weatherIcon(weather.weathercode)}</div>
+          <span className="text-2xl font-black text-slate-700">
             {Math.round(weather.temperature)}°C
           </span>
         </div>

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Hourglass } from 'lucide-react';
 import { REUNION_DATE } from '../config';
 
 function Countdown() {
@@ -16,31 +17,42 @@ function Countdown() {
   const minutes = Math.floor((absDiff % (1000 * 60 * 60)) / (1000 * 60));
   const seconds = Math.floor((absDiff % (1000 * 60)) / 1000);
 
+  const units = [
+    { label: 'Days', value: days },
+    { label: 'Hours', value: hours },
+    { label: 'Minutes', value: minutes },
+    { label: 'Seconds', value: seconds },
+  ];
+
   return (
-    <section className="bg-white rounded-2xl shadow-sm border border-rose-100 p-6 text-center">
-      <h2 className="text-lg font-semibold text-slate-700 mb-2">Next Reunion</h2>
-      <div className="flex justify-center gap-3 sm:gap-6">
-        {[
-          { label: 'Days', value: days },
-          { label: 'Hours', value: hours },
-          { label: 'Minutes', value: minutes },
-          { label: 'Seconds', value: seconds },
-        ].map(({ label, value }) => (
-          <div key={label} className="flex flex-col items-center">
-            <span className="text-3xl sm:text-5xl font-bold text-rose-600 tabular-nums">
+    <section className="relative overflow-hidden bg-gradient-to-br from-white/80 to-white/40 backdrop-blur-2xl border border-white/40 rounded-3xl p-8 shadow-2xl text-center">
+      <Hourglass
+        size={80}
+        className="absolute -top-4 -right-4 text-rose-200/30 rotate-12"
+      />
+      <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-rose-700/70 mb-2">
+        Next Reunion
+      </h2>
+      <p className="text-slate-500 text-sm mb-6">
+        {diff > 0
+          ? 'Counting down to the day we meet again'
+          : 'The reunion date has passed. Update it in src/config.js.'}
+      </p>
+      <div className="flex justify-center gap-3 sm:gap-5 flex-wrap">
+        {units.map(({ label, value }) => (
+          <div
+            key={label}
+            className="flex flex-col items-center min-w-[4.5rem] sm:min-w-[6rem] bg-white/40 backdrop-blur-md rounded-2xl p-3 sm:p-4 border border-white/30 shadow-sm"
+          >
+            <span className="text-4xl sm:text-6xl font-black bg-clip-text text-transparent bg-gradient-to-b from-rose-600 to-rose-800 tabular-nums">
               {String(value).padStart(2, '0')}
             </span>
-            <span className="text-xs sm:text-sm text-slate-500 uppercase tracking-wide">
+            <span className="text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-widest mt-1">
               {label}
             </span>
           </div>
         ))}
       </div>
-      <p className="mt-3 text-sm text-slate-400">
-        {diff > 0
-          ? 'Counting down to the day!'
-          : 'The reunion date has passed. Update it in src/config.js.'}
-      </p>
     </section>
   );
 }
