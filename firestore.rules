@@ -25,5 +25,9 @@ service cloud.firestore {
     match /bibleVerses/{docId} {
       allow read, write: if isAllowed();
     }
+
+    match /settings/{docId} {
+      allow read, write: if isAllowed();
+    }
   }
 }

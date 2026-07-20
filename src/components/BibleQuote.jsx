@@ -30,10 +30,15 @@ function formatTime(ts) {
 }
 
 function parseReference(input) {
-  const match = input.trim().match(/^(.*?)\s+(\d+):(\d+)$/);
+  const match = input.trim().match(/^(.*?)\s+(\d+)(?::(\d+)(?:\s*-\s*(\d+))?)?$/);
   if (!match) return null;
   const book = match[1].trim().toLowerCase().replace(/\s+/g, '-');
-  return { book, chapter: match[2], verse: match[3] };
+  return {
+    book,
+    chapter: match[2],
+    verse: match[3],
+    endVerse: match[4],
+  };
 }
 
 function BibleQuote() {
@@ -69,23 +74,31 @@ function BibleQuote() {
     setLookupError('');
     const parsed = parseReference(lookup);
     if (!parsed) {
-      setLookupError('Use format like "John 3:16" or "1-John 3:16"');
+      setLookupError('Use format like "John 3", "John 3:16", or "John 3:16-18"');
       return;
     }
     setLoading(true);
     try {
-      const url = `https://api.midvash.com/v1/${version}/${parsed.book}/${parsed.chapter}/${parsed.verse}`;
+      let url;
+      if (!parsed.verse) {
+        url = `https://api.midvash.com/v1/${version}/${parsed.book}/${parsed.chapter}`;
+      } else if (parsed.endVerse) {
+        url = `https://api.midvash.com/v1/${version}/${parsed.book}/${parsed.chapter}/${parsed.verse}-${parsed.endVerse}`;
+      } else {
+        url = `https://api.midvash.com/v1/${version}/${parsed.book}/${parsed.chapter}/${parsed.verse}`;
+      }
       const res = await fetch(url);
       if (!res.ok) throw new Error('Failed to fetch');
       const data = await res.json();
+      const text = data.data.text || data.data.verses?.join(' ') || '';
       setVerse({
         reference: data.meta.reference,
-        text: data.data.text,
+        text,
         version: data.data.version,
       });
       setLookup('');
     } catch {
-      setLookupError('Could not find that verse. Check the reference and try again.');
+      setLookupError('Could not find that passage. Check the reference and try again.');
     } finally {
       setLoading(false);
     }
@@ -153,12 +166,14 @@ function BibleQuote() {
 
       <div className="bg-white/40 backdrop-blur-sm rounded-2xl p-5 border border-white/30 mb-4">
         {loading ? (
-          <p className="text-slate-500 italic">Loading verse…</p>
+          <p className="text-slate-500 italic">Loading passage…</p>
         ) : (
           <>
-            <p className="text-slate-700 leading-relaxed italic text-lg">
-              &ldquo;{verse?.text}&rdquo;
-            </p>
+            <div className="max-h-80 overflow-y-auto pr-2 scrollbar-thin">
+              <p className="text-slate-700 leading-relaxed italic text-lg">
+                &ldquo;{verse?.text}&rdquo;
+              </p>
+            </div>
             <p className="mt-2 text-sm font-bold text-rose-700">
               {verse?.reference} ({verse?.version?.toUpperCase()})
             </p>
@@ -179,7 +194,7 @@ function BibleQuote() {
           type="text"
           value={lookup}
           onChange={(e) => setLookup(e.target.value)}
-          placeholder="Look up a verse, e.g. John 3:16"
+          placeholder="John 3, John 3:16, or John 3:16-18"
           className="flex-1 rounded-xl border border-white/30 bg-white/40 px-4 py-2.5 text-slate-800 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-rose-300"
         />
         <button

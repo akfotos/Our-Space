@@ -5,7 +5,6 @@ import {
   Heart,
   MessageCircle,
   Play,
-  Image,
   List,
   Settings,
   Menu,
@@ -28,7 +27,6 @@ function Nav() {
     { to: '/', label: 'Dashboard', icon: Heart },
     { to: '/chat', label: 'Chat', icon: MessageCircle },
     { to: '/watch', label: 'Watch', icon: Play },
-    { to: '/memories', label: 'Memories', icon: Image },
     { to: '/bucket', label: 'Bucket List', icon: List },
     { to: '/settings', label: 'Settings', icon: Settings },
   ];

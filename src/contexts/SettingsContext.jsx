@@ -1,5 +1,8 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { REUNION_DATE } from '../config';
+import { auth, db } from '../firebaseConfig';
+import { onAuthStateChanged } from 'firebase/auth';
+import { doc, onSnapshot, setDoc } from 'firebase/firestore';
 
 const defaults = {
   darkMode: false,
@@ -28,6 +31,45 @@ const SettingsContext = createContext(null);
 
 export function SettingsProvider({ children }) {
   const [settings, setSettingsState] = useState(loadSettings());
+  const [currentUser, setCurrentUser] = useState(null);
+  const [loaded, setLoaded] = useState(false);
+  const settingsRef = useRef(settings);
+  const remoteDateRef = useRef(null);
+
+  useEffect(() => {
+    settingsRef.current = settings;
+  }, [settings]);
+
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, (u) => setCurrentUser(u));
+    return unsub;
+  }, []);
+
+  useEffect(() => {
+    if (!currentUser) return;
+    const unsub = onSnapshot(doc(db, 'settings', 'shared'), (snap) => {
+      if (snap.exists()) {
+        const data = snap.data();
+        remoteDateRef.current = data.reunionDate || null;
+        if (data.reunionDate && data.reunionDate !== settingsRef.current.reunionDate) {
+          setSettingsState((prev) => ({ ...prev, reunionDate: data.reunionDate }));
+        }
+      } else {
+        remoteDateRef.current = null;
+      }
+      setLoaded(true);
+    });
+    return unsub;
+  }, [currentUser]);
+
+  useEffect(() => {
+    if (!loaded || !currentUser) return;
+    if (settings.reunionDate && settings.reunionDate !== remoteDateRef.current) {
+      setDoc(doc(db, 'settings', 'shared'), { reunionDate: settings.reunionDate }, { merge: true }).catch(
+        () => {}
+      );
+    }
+  }, [settings.reunionDate, loaded, currentUser]);
 
   useEffect(() => {
     localStorage.setItem('our-space-settings', JSON.stringify(settings));
