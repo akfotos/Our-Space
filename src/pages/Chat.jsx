@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react';
 import {
   Send,
   Paperclip,
-  Camera,
   Monitor,
   FileText,
   Link as LinkIcon,
@@ -31,8 +30,7 @@ function Chat() {
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
   const bottomRef = useRef(null);
-  const cameraInputRef = useRef(null);
-  const docInputRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -65,10 +63,11 @@ function Chat() {
     setProgress(0);
   };
 
-  const handleFile = async (type, e) => {
+  const handleFile = async (e) => {
     const file = e.target.files?.[0];
     if (!file || uploading) return;
     e.target.value = '';
+    const type = file.type.startsWith('image/') ? 'image' : 'file';
     startUpload();
     try {
       await sendFile(file, type, text, setProgress);
@@ -248,16 +247,8 @@ function Chat() {
       <div className="p-3 border-t border-rose-100 bg-white flex gap-2 relative">
         <input
           type="file"
-          accept="image/*"
-          capture="environment"
-          ref={cameraInputRef}
-          onChange={(e) => handleFile('image', e)}
-          className="hidden"
-        />
-        <input
-          type="file"
-          ref={docInputRef}
-          onChange={(e) => handleFile('file', e)}
+          ref={fileInputRef}
+          onChange={handleFile}
           className="hidden"
         />
 
@@ -274,14 +265,6 @@ function Chat() {
           <div className="absolute bottom-full left-3 mb-2 bg-white rounded-xl shadow-lg border border-rose-100 p-2 flex gap-2 z-10">
             <button
               type="button"
-              onClick={() => cameraInputRef.current?.click()}
-              className="flex flex-col items-center gap-1 p-2 rounded-lg hover:bg-rose-50 text-xs text-slate-600 min-w-[4rem]"
-            >
-              <Camera size={20} className="text-rose-600" />
-              Camera
-            </button>
-            <button
-              type="button"
               onClick={handleScreenShare}
               className="flex flex-col items-center gap-1 p-2 rounded-lg hover:bg-rose-50 text-xs text-slate-600 min-w-[4rem]"
             >
@@ -290,7 +273,7 @@ function Chat() {
             </button>
             <button
               type="button"
-              onClick={() => docInputRef.current?.click()}
+              onClick={() => fileInputRef.current?.click()}
               className="flex flex-col items-center gap-1 p-2 rounded-lg hover:bg-rose-50 text-xs text-slate-600 min-w-[4rem]"
             >
               <FileText size={20} className="text-rose-600" />
