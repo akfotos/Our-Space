@@ -22,3 +22,6 @@ Thumbs.db
 
 # Firebase cache
 .firebase/
+
+# Temporary auth helpers
+askpass.bat
