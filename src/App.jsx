@@ -1,5 +1,6 @@
 import { Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
+import { SettingsProvider } from './contexts/SettingsContext';
 import PrivateRoute from './components/PrivateRoute';
 import Nav from './components/Nav';
 import Auth from './components/Auth';
@@ -12,8 +13,9 @@ import Settings from './pages/Settings';
 
 function App() {
   return (
-    <AuthProvider>
-      <div className="min-h-screen flex flex-col">
+    <SettingsProvider>
+      <AuthProvider>
+        <div className="min-h-screen flex flex-col">
         <Nav />
         <main className="flex-1 p-4 sm:p-6">
           <Routes>
@@ -28,6 +30,7 @@ function App() {
         </main>
       </div>
     </AuthProvider>
+    </SettingsProvider>
   );
 }
 

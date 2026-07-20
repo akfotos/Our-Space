@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Hourglass } from 'lucide-react';
-import { REUNION_DATE } from '../config';
+import { useSettings } from '../contexts/SettingsContext';
 
 function Countdown() {
+  const { settings } = useSettings();
   const [now, setNow] = useState(new Date());
 
   useEffect(() => {
@@ -10,19 +11,21 @@ function Countdown() {
     return () => clearInterval(t);
   }, []);
 
-  const diff = REUNION_DATE - now;
+  const target = new Date(settings.reunionDate);
+  const diff = target - now;
   const absDiff = Math.max(0, diff);
   const days = Math.floor(absDiff / (1000 * 60 * 60 * 24));
   const hours = Math.floor((absDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
   const minutes = Math.floor((absDiff % (1000 * 60 * 60)) / (1000 * 60));
   const seconds = Math.floor((absDiff % (1000 * 60)) / 1000);
 
-  const units = [
+  const allUnits = [
     { label: 'Days', value: days },
     { label: 'Hours', value: hours },
     { label: 'Minutes', value: minutes },
     { label: 'Seconds', value: seconds },
   ];
+  const units = settings.showSeconds ? allUnits : allUnits.slice(0, 3);
 
   return (
     <section className="relative overflow-hidden bg-gradient-to-br from-white/80 to-white/40 backdrop-blur-2xl border border-white/40 rounded-3xl p-8 shadow-2xl text-center">

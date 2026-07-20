@@ -1,4 +1,5 @@
 import { Heart, Sparkles } from 'lucide-react';
+import { useSettings } from '../contexts/SettingsContext';
 import Countdown from '../components/Countdown';
 import TimeWeather from '../components/TimeWeather';
 import DailyCheckIn from '../components/DailyCheckIn';
@@ -9,6 +10,8 @@ import Affirmations from '../components/Affirmations';
 import { USERS } from '../config';
 
 function Dashboard() {
+  const { settings } = useSettings();
+
   return (
     <div className="relative max-w-6xl mx-auto space-y-8 pb-10 overflow-hidden">
       {/* decorative glass blobs */}
@@ -38,24 +41,32 @@ function Dashboard() {
         <Countdown />
       </section>
 
-      <section className="grid sm:grid-cols-2 gap-5 animate-fade-in-up [animation-delay:0.2s]">
-        <TimeWeather profile={USERS.A} />
-        <TimeWeather profile={USERS.B} />
-      </section>
+      {settings.showWeather && (
+        <section className="grid sm:grid-cols-2 gap-5 animate-fade-in-up [animation-delay:0.2s]">
+          <TimeWeather profile={USERS.A} />
+          <TimeWeather profile={USERS.B} />
+        </section>
+      )}
 
-      <section className="grid sm:grid-cols-2 gap-5 animate-fade-in-up [animation-delay:0.3s]">
-        <DailyCheckIn />
-        <MissYouButton />
-      </section>
+      {(settings.showCheckIn || settings.showMissYou) && (
+        <section className="grid sm:grid-cols-2 gap-5 animate-fade-in-up [animation-delay:0.3s]">
+          {settings.showCheckIn && <DailyCheckIn />}
+          {settings.showMissYou && <MissYouButton />}
+        </section>
+      )}
 
-      <section className="grid sm:grid-cols-2 gap-5 animate-fade-in-up [animation-delay:0.4s]">
-        <DailyQuote />
-        <DistanceCard />
-      </section>
+      {(settings.showQuote || settings.showDistance) && (
+        <section className="grid sm:grid-cols-2 gap-5 animate-fade-in-up [animation-delay:0.4s]">
+          {settings.showQuote && <DailyQuote />}
+          {settings.showDistance && <DistanceCard />}
+        </section>
+      )}
 
-      <section className="animate-fade-in-up [animation-delay:0.5s]">
-        <Affirmations />
-      </section>
+      {settings.showAffirmations && (
+        <section className="animate-fade-in-up [animation-delay:0.5s]">
+          <Affirmations />
+        </section>
+      )}
     </div>
   );
 }
