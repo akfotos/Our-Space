@@ -8,6 +8,32 @@ import {
 import { auth, provider } from '../firebaseConfig';
 import { ALLOWED_EMAILS, USERS } from '../config';
 
+function getAuthErrorMessage(err) {
+  const code = err?.code;
+  switch (code) {
+    case 'auth/unauthorized-domain':
+      return 'This domain is not authorized for Firebase sign-in. Add akfotos.github.io to Firebase Console > Authentication > Settings > Authorized domains.';
+    case 'auth/operation-not-allowed':
+      return 'This sign-in method is not enabled. Enable Google or Email/Password in Firebase Console > Authentication > Sign-in method.';
+    case 'auth/popup-blocked':
+      return 'The sign-in popup was blocked. Allow popups for this site and try again.';
+    case 'auth/popup-closed-by-user':
+      return 'Sign-in was cancelled. Please try again.';
+    case 'auth/invalid-login-credentials':
+    case 'auth/wrong-password':
+    case 'auth/user-not-found':
+      return 'Email or password is incorrect.';
+    case 'auth/invalid-email':
+      return 'Please enter a valid email address.';
+    case 'auth/too-many-requests':
+      return 'Too many attempts. Please try again later.';
+    case 'auth/network-request-failed':
+      return 'Network error. Check your connection and try again.';
+    default:
+      return err?.message || 'An unexpected sign-in error occurred.';
+  }
+}
+
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
@@ -41,7 +67,7 @@ export const AuthProvider = ({ children }) => {
         setError('This email is not allowed. Only Emmanuel and Sarah can use this app.');
       }
     } catch (err) {
-      setError(err.message);
+      setError(getAuthErrorMessage(err));
     }
   };
 
@@ -54,7 +80,7 @@ export const AuthProvider = ({ children }) => {
     try {
       await signInWithEmailAndPassword(auth, email, password);
     } catch (err) {
-      setError(err.message);
+      setError(getAuthErrorMessage(err));
     }
   };
 
