@@ -65,12 +65,26 @@ export function useChat() {
   }, [user]);
 
   useEffect(() => {
+    if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+  }, []);
+
+  useEffect(() => {
     const missRef = ref(rtdb, 'missYou');
     const unsub = onValue(missRef, (snap) => {
-      setMissYou(snap.exists() ? snap.val() : null);
+      const val = snap.exists() ? snap.val() : null;
+      setMissYou(val);
+      if (val && user && val.uid !== user.uid && typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+        new Notification('Miss You ❤️', {
+          body: `${val.from} sent you a miss you ping!`,
+          icon: '/favicon.ico',
+          tag: 'miss-you',
+        });
+      }
     });
     return unsub;
-  }, []);
+  }, [user]);
 
   const pushMessage = (data) =>
     push(ref(rtdb, 'messages'), {

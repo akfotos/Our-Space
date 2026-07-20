@@ -1,22 +1,22 @@
 {
   "rules": {
     "messages": {
-      ".read": "auth != null && (auth.token.email == 'amenyahemmanuel@gmail.com' || auth.token.email == 'Sarahyeboah023@gmail.com')",
-      ".write": "auth != null && (auth.token.email == 'amenyahemmanuel@gmail.com' || auth.token.email == 'Sarahyeboah023@gmail.com')"
+      ".read": "auth != null && auth.token.email.toLowerCase().matches(/^amenyahemmanuel@gmail.com$|^sarahyeboah023@gmail.com$/)",
+      ".write": "auth != null && auth.token.email.toLowerCase().matches(/^amenyahemmanuel@gmail.com$|^sarahyeboah023@gmail.com$/)"
     },
     "typing": {
-      ".read": "auth != null && (auth.token.email == 'amenyahemmanuel@gmail.com' || auth.token.email == 'Sarahyeboah023@gmail.com')",
+      ".read": "auth != null && auth.token.email.toLowerCase().matches(/^amenyahemmanuel@gmail.com$|^sarahyeboah023@gmail.com$/)",
       "$uid": {
-        ".write": "auth != null && auth.uid == $uid && (auth.token.email == 'amenyahemmanuel@gmail.com' || auth.token.email == 'Sarahyeboah023@gmail.com')"
+        ".write": "auth != null && auth.uid == $uid && auth.token.email.toLowerCase().matches(/^amenyahemmanuel@gmail.com$|^sarahyeboah023@gmail.com$/)"
       }
     },
     "missYou": {
-      ".read": "auth != null && (auth.token.email == 'amenyahemmanuel@gmail.com' || auth.token.email == 'Sarahyeboah023@gmail.com')",
-      ".write": "auth != null && (auth.token.email == 'amenyahemmanuel@gmail.com' || auth.token.email == 'Sarahyeboah023@gmail.com')"
+      ".read": "auth != null && auth.token.email.toLowerCase().matches(/^amenyahemmanuel@gmail.com$|^sarahyeboah023@gmail.com$/)",
+      ".write": "auth != null && auth.token.email.toLowerCase().matches(/^amenyahemmanuel@gmail.com$|^sarahyeboah023@gmail.com$/)"
     },
     "playerState": {
-      ".read": "auth != null && (auth.token.email == 'amenyahemmanuel@gmail.com' || auth.token.email == 'Sarahyeboah023@gmail.com')",
-      ".write": "auth != null && (auth.token.email == 'amenyahemmanuel@gmail.com' || auth.token.email == 'Sarahyeboah023@gmail.com')"
+      ".read": "auth != null && auth.token.email.toLowerCase().matches(/^amenyahemmanuel@gmail.com$|^sarahyeboah023@gmail.com$/)",
+      ".write": "auth != null && auth.token.email.toLowerCase().matches(/^amenyahemmanuel@gmail.com$|^sarahyeboah023@gmail.com$/)"
     }
   }
 }
