@@ -31,6 +31,7 @@ function Chat() {
   const [progress, setProgress] = useState(0);
   const bottomRef = useRef(null);
   const fileInputRef = useRef(null);
+  const screenInputRef = useRef(null);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -67,7 +68,9 @@ function Chat() {
     const file = e.target.files?.[0];
     if (!file || uploading) return;
     e.target.value = '';
-    const type = file.type.startsWith('image/') ? 'image' : 'file';
+    let type = 'file';
+    if (file.type.startsWith('image/')) type = 'image';
+    else if (file.type.startsWith('video/')) type = 'video';
     startUpload();
     try {
       await sendFile(file, type, text, setProgress);
@@ -78,7 +81,14 @@ function Chat() {
   };
 
   const handleScreenShare = async () => {
-    if (!navigator.mediaDevices?.getDisplayMedia || uploading) return;
+    if (uploading) return;
+    // Most phones/browsers can't capture the device screen from a web page,
+    // so fall back to letting the user pick a screenshot/screen recording.
+    if (!navigator.mediaDevices?.getDisplayMedia) {
+      setMenuOpen(false);
+      screenInputRef.current?.click();
+      return;
+    }
     let stream;
     try {
       stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
@@ -140,6 +150,18 @@ function Chat() {
             alt="attachment"
             className="max-w-full max-h-64 rounded-lg object-contain bg-black/5"
             loading="lazy"
+          />
+        </>
+      );
+    }
+    if (msg.type === 'video') {
+      return (
+        <>
+          {msg.text && <p className="mb-1">{msg.text}</p>}
+          <video
+            src={msg.url}
+            controls
+            className="max-w-full max-h-64 rounded-lg object-contain bg-black/5"
           />
         </>
       );
@@ -248,6 +270,13 @@ function Chat() {
         <input
           type="file"
           ref={fileInputRef}
+          onChange={handleFile}
+          className="hidden"
+        />
+        <input
+          type="file"
+          accept="image/*,video/*"
+          ref={screenInputRef}
           onChange={handleFile}
           className="hidden"
         />
