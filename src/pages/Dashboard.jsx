@@ -6,6 +6,8 @@ import { db } from '../firebaseConfig';
 import { doc, onSnapshot, setDoc, serverTimestamp } from 'firebase/firestore';
 import Countdown from '../components/Countdown';
 import TimeWeather from '../components/TimeWeather';
+import OnlineStatus from '../components/OnlineStatus';
+import { usePresence } from '../contexts/PresenceContext';
 import DailyCheckIn from '../components/DailyCheckIn';
 import MissYouButton from '../components/MissYouButton';
 import DailyQuote from '../components/DailyQuote';
@@ -49,7 +51,10 @@ async function getLocationLabel(lat, lon) {
 function Dashboard() {
   const { settings } = useSettings();
   const { user } = useAuth();
+  const presence = usePresence();
   const [profiles, setProfiles] = useState(USERS);
+
+  const status = (key) => presence[key] || { online: false };
 
   useEffect(() => {
     const unsubA = onSnapshot(doc(db, 'userLocations', 'A'), (snap) => {
@@ -124,6 +129,19 @@ function Dashboard() {
         <p className="text-lg sm:text-xl text-slate-600 font-medium italic">
           Distance makes the heart grow fonder.
         </p>
+        <div className="mt-4 flex flex-wrap items-center justify-center gap-4">
+          <OnlineStatus
+            online={status('A').online}
+            lastSeen={status('A').lastSeen}
+            name={profiles.A.name}
+          />
+          <span className="hidden sm:inline text-slate-300">|</span>
+          <OnlineStatus
+            online={status('B').online}
+            lastSeen={status('B').lastSeen}
+            name={profiles.B.name}
+          />
+        </div>
       </header>
 
       <section className="animate-fade-in-up [animation-delay:0.05s]">

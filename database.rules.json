@@ -17,6 +17,13 @@
     "playerState": {
       ".read": "auth != null && auth.token.email.toLowerCase().matches(/^amenyahemmanuel@gmail.com$|^sarahyeboah023@gmail.com$/)",
       ".write": "auth != null && auth.token.email.toLowerCase().matches(/^amenyahemmanuel@gmail.com$|^sarahyeboah023@gmail.com$/)"
+    },
+    "presence": {
+      ".read": "auth != null && auth.token.email.toLowerCase().matches(/^amenyahemmanuel@gmail.com$|^sarahyeboah023@gmail.com$/)",
+      "$uid": {
+        ".write": "auth != null && auth.uid == $uid && auth.token.email.toLowerCase().matches(/^amenyahemmanuel@gmail.com$|^sarahyeboah023@gmail.com$/)",
+        ".validate": "newData.hasChildren(['online', 'lastSeen', 'name'])"
+      }
     }
   }
 }

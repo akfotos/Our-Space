@@ -13,7 +13,10 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useChat } from '../hooks/useChat';
+import { usePresence } from '../contexts/PresenceContext';
+import OnlineStatus from '../components/OnlineStatus';
 import TypingIndicator from '../components/TypingIndicator';
+import { USERS } from '../config';
 
 function avatarInitial(name) {
   return (name || '?').trim()[0].toUpperCase();
@@ -34,6 +37,9 @@ function Chat() {
     editMessage,
     deleteMessage,
   } = useChat();
+  const presence = usePresence();
+  const otherKey = user?.email?.toLowerCase() === USERS.A.email.toLowerCase() ? 'B' : 'A';
+  const otherPresence = presence[otherKey] || { online: false };
   const [text, setText] = useState('');
   const [menuOpen, setMenuOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
@@ -216,11 +222,19 @@ function Chat() {
             <div className="w-10 h-10 rounded-full bg-rose-100/80 flex items-center justify-center text-rose-700">
               <Heart size={20} className="fill-rose-600 text-rose-600" />
             </div>
-            <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-green-500 border-2 border-white" />
+            <span
+              className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white ${
+                otherPresence.online ? 'bg-green-500' : 'bg-slate-400'
+              }`}
+            />
           </div>
           <div>
             <h2 className="text-lg font-bold text-slate-800">Our Chat</h2>
-            <p className="text-xs text-slate-500 font-medium">Always connected</p>
+            <OnlineStatus
+              online={otherPresence.online}
+              lastSeen={otherPresence.lastSeen}
+              showName={false}
+            />
           </div>
         </div>
         <button
