@@ -34,6 +34,40 @@ module.exports = {
           900: 'rgb(var(--color-slate-900) / <alpha-value>)',
         },
       },
+      keyframes: {
+        fadeInUp: {
+          '0%': { opacity: '0', transform: 'translateY(12px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+        slideInRight: {
+          '0%': { opacity: '0', transform: 'translateX(16px)' },
+          '100%': { opacity: '1', transform: 'translateX(0)' },
+        },
+        slideInLeft: {
+          '0%': { opacity: '0', transform: 'translateX(-16px)' },
+          '100%': { opacity: '1', transform: 'translateX(0)' },
+        },
+        popIn: {
+          '0%': { opacity: '0', transform: 'scale(0.92) translateY(8px)' },
+          '100%': { opacity: '1', transform: 'scale(1) translateY(0)' },
+        },
+        pulseSoft: {
+          '0%, 100%': { opacity: '0.4' },
+          '50%': { opacity: '1' },
+        },
+        float: {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(-3px)' },
+        },
+      },
+      animation: {
+        'fade-in-up': 'fadeInUp 0.35s ease-out forwards',
+        'slide-in-right': 'slideInRight 0.35s ease-out forwards',
+        'slide-in-left': 'slideInLeft 0.35s ease-out forwards',
+        'pop-in': 'popIn 0.25s ease-out forwards',
+        'pulse-soft': 'pulseSoft 1.4s infinite',
+        'float': 'float 3s ease-in-out infinite',
+      },
     },
   },
   plugins: [],
