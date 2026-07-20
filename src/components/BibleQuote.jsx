@@ -7,6 +7,8 @@ import {
   limit,
   onSnapshot,
   serverTimestamp,
+  doc,
+  setDoc,
 } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 import { useAuth } from '../contexts/AuthContext';
@@ -50,18 +52,30 @@ function BibleQuote() {
   const [lookupError, setLookupError] = useState('');
   const [sending, setSending] = useState(false);
   const [items, setItems] = useState([]);
+  const sharedDoc = doc(db, 'settings', 'currentBibleVerse');
 
-  const fetchVOTD = async (ver) => {
+  const saveSharedVerse = async (next) => {
+    if (!user) return;
+    await setDoc(
+      sharedDoc,
+      { ...next, updatedBy: user.displayName, timestamp: serverTimestamp() },
+      { merge: true }
+    );
+  };
+
+  const fetchVOTD = async (ver, sync = false) => {
     setLoading(true);
     try {
       const res = await fetch(`https://api.midvash.com/v1/votd?version=${ver}`);
       if (!res.ok) throw new Error('Failed to fetch');
       const data = await res.json();
-      setVerse({
+      const next = {
         reference: data.reference,
         text: data.text,
         version: data.version,
-      });
+      };
+      setVerse(next);
+      if (sync) await saveSharedVerse(next);
     } catch {
       setVerse({ reference: '', text: 'Unable to load a verse right now.', version: ver });
     } finally {
@@ -91,11 +105,13 @@ function BibleQuote() {
       if (!res.ok) throw new Error('Failed to fetch');
       const data = await res.json();
       const text = data.data.text || data.data.verses?.join(' ') || '';
-      setVerse({
+      const next = {
         reference: data.meta.reference,
         text,
         version: data.data.version,
-      });
+      };
+      setVerse(next);
+      await saveSharedVerse(next);
       setLookup('');
     } catch {
       setLookupError('Could not find that passage. Check the reference and try again.');
@@ -104,9 +120,64 @@ function BibleQuote() {
     }
   };
 
+  const changeVersion = async (newVersion) => {
+    setVersion(newVersion);
+    if (!verse?.reference) {
+      await fetchVOTD(newVersion, true);
+      return;
+    }
+    const parsed = parseReference(verse.reference);
+    if (!parsed) {
+      await fetchVOTD(newVersion, true);
+      return;
+    }
+    setLoading(true);
+    try {
+      let url;
+      if (!parsed.verse) {
+        url = `https://api.midvash.com/v1/${newVersion}/${parsed.book}/${parsed.chapter}`;
+      } else if (parsed.endVerse) {
+        url = `https://api.midvash.com/v1/${newVersion}/${parsed.book}/${parsed.chapter}/${parsed.verse}-${parsed.endVerse}`;
+      } else {
+        url = `https://api.midvash.com/v1/${newVersion}/${parsed.book}/${parsed.chapter}/${parsed.verse}`;
+      }
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('Failed to fetch');
+      const data = await res.json();
+      const text = data.data.text || data.data.verses?.join(' ') || '';
+      const next = {
+        reference: data.meta.reference,
+        text,
+        version: newVersion,
+      };
+      setVerse(next);
+      await saveSharedVerse(next);
+    } catch {
+      setVerse({ reference: verse.reference, text: 'Unable to load passage in this version.', version: newVersion });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    fetchVOTD(version);
-  }, [version]);
+    const unsub = onSnapshot(sharedDoc, (snap) => {
+      if (snap.exists()) {
+        const data = snap.data();
+        if (data.version) setVersion(data.version);
+        if (data.text) {
+          setVerse({
+            reference: data.reference,
+            text: data.text,
+            version: data.version,
+          });
+          setLoading(false);
+        }
+      } else {
+        fetchVOTD(version, false);
+      }
+    });
+    return unsub;
+  }, []);
 
   useEffect(() => {
     const q = query(
@@ -152,7 +223,7 @@ function BibleQuote() {
         {VERSIONS.map((v) => (
           <button
             key={v.slug}
-            onClick={() => setVersion(v.slug)}
+            onClick={() => changeVersion(v.slug)}
             className={`px-4 py-1.5 rounded-full text-sm font-semibold transition ${
               version === v.slug
                 ? 'bg-rose-600 text-white shadow'
@@ -207,7 +278,7 @@ function BibleQuote() {
         </button>
         <button
           type="button"
-          onClick={() => fetchVOTD(version)}
+          onClick={() => fetchVOTD(version, true)}
           className="flex items-center justify-center gap-2 px-4 py-2.5 bg-white/40 hover:bg-white/60 text-slate-700 rounded-xl font-medium transition"
         >
           <RefreshCw size={16} />
