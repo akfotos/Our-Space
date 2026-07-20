@@ -51,7 +51,7 @@ function Auth() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="mt-1 w-full rounded-xl border border-slate-200 px-4 py-2.5 text-slate-800 focus:border-rose-500 focus:outline-none focus:ring-1 focus:ring-rose-500"
+              className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-slate-800 placeholder-slate-400 focus:border-rose-500 focus:outline-none focus:ring-1 focus:ring-rose-500"
             />
           </div>
           <div>
@@ -64,7 +64,7 @@ function Auth() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="mt-1 w-full rounded-xl border border-slate-200 px-4 py-2.5 text-slate-800 focus:border-rose-500 focus:outline-none focus:ring-1 focus:ring-rose-500"
+              className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-slate-800 placeholder-slate-400 focus:border-rose-500 focus:outline-none focus:ring-1 focus:ring-rose-500"
             />
           </div>
           <button
