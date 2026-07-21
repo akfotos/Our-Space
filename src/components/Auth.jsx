@@ -41,14 +41,25 @@ function Auth() {
     reunionDate: defaultReunionDate(),
     location: null,
   });
-  const [isSignUp, setIsSignUp] = useState(false);
+  const [isSignUp, setIsSignUp] = useState(true);
   const [name, setName] = useState(onboarding.myName || '');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordError, setPasswordError] = useState('');
   const [locating, setLocating] = useState(false);
 
   const handleSetup = (e) => {
     e.preventDefault();
+    setPasswordError('');
+    if (password.length < 6) {
+      setPasswordError('Password must be at least 6 characters.');
+      return;
+    }
+    if (password !== confirmPassword) {
+      setPasswordError('Passwords do not match.');
+      return;
+    }
     saveOnboarding(onboarding);
     setName(onboarding.myName);
     setStep('auth');
@@ -76,7 +87,12 @@ function Auth() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setPasswordError('');
     if (isSignUp) {
+      if (password.length < 6) {
+        setPasswordError('Password must be at least 6 characters.');
+        return;
+      }
       await signUpWithEmail(name, email, password);
     } else {
       await signInWithEmail(email, password);
@@ -165,9 +181,38 @@ function Auth() {
                 </p>
               )}
             </div>
+            <div>
+              <label htmlFor="setupPassword" className="block text-sm font-medium text-slate-700">Password</label>
+              <input
+                id="setupPassword"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                minLength={6}
+                placeholder="At least 6 characters"
+                className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-slate-800 placeholder-slate-400 focus:border-rose-500 focus:outline-none focus:ring-1 focus:ring-rose-500"
+              />
+            </div>
+            <div>
+              <label htmlFor="setupConfirm" className="block text-sm font-medium text-slate-700">Confirm password</label>
+              <input
+                id="setupConfirm"
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+                minLength={6}
+                placeholder="Re-enter your password"
+                className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-slate-800 placeholder-slate-400 focus:border-rose-500 focus:outline-none focus:ring-1 focus:ring-rose-500"
+              />
+            </div>
+            {passwordError && (
+              <p className="text-sm text-red-600">{passwordError}</p>
+            )}
             <button
               type="submit"
-              disabled={!onboarding.myName || !onboarding.partnerName || !onboarding.reunionDate}
+              disabled={!onboarding.myName || !onboarding.partnerName || !onboarding.reunionDate || !password || !confirmPassword}
               className="w-full py-3 px-4 bg-rose-600 hover:bg-rose-700 disabled:bg-rose-300 text-white rounded-xl font-medium transition"
             >
               Continue to account
@@ -178,6 +223,10 @@ function Auth() {
             type="button"
             onClick={() => {
               clearOnboarding();
+              setIsSignUp(false);
+              setPassword('');
+              setConfirmPassword('');
+              setPasswordError('');
               setStep('auth');
             }}
             className="mt-4 text-sm text-rose-600 hover:underline"
@@ -202,6 +251,11 @@ function Auth() {
         {error && (
           <div className="mb-4 p-3 bg-red-50 text-red-600 rounded-lg text-sm">
             {error}
+          </div>
+        )}
+        {passwordError && (
+          <div className="mb-4 p-3 bg-red-50 text-red-600 rounded-lg text-sm">
+            {passwordError}
           </div>
         )}
         <form onSubmit={handleSubmit} className="space-y-4 text-left">
