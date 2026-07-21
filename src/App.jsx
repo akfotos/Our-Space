@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useLayoutEffect, useRef, useState } from 'react';
 import { Routes, Route, useNavigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { SettingsProvider } from './contexts/SettingsContext';
@@ -15,24 +15,26 @@ import Player from './pages/Player';
 import BucketList from './pages/BucketList';
 import Settings from './pages/Settings';
 
-const WELCOME_KEY = 'our-space-welcome-shown';
-
 function AppContent() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
-  const [showWelcome, setShowWelcome] = useState(
-    () => sessionStorage.getItem(WELCOME_KEY) !== 'true'
-  );
+  const welcomedUserRef = useRef(null);
+  const [showWelcome, setShowWelcome] = useState(false);
 
-  useEffect(() => {
-    if (!loading && !user) {
-      sessionStorage.removeItem(WELCOME_KEY);
+  useLayoutEffect(() => {
+    if (loading) return;
+    if (!user) {
+      welcomedUserRef.current = null;
+      setShowWelcome(false);
+      return;
+    }
+    if (welcomedUserRef.current !== user.uid) {
+      welcomedUserRef.current = user.uid;
       setShowWelcome(true);
     }
   }, [user, loading]);
 
   const finishWelcome = useCallback(() => {
-    sessionStorage.setItem(WELCOME_KEY, 'true');
     setShowWelcome(false);
     navigate('/', { replace: true });
   }, [navigate]);
