@@ -6,7 +6,8 @@
         ".write": "auth != null",
         "messages": {
           ".read": "auth != null",
-          ".write": "auth != null"
+          ".write": "auth != null",
+          ".indexOn": ["timestamp"]
         },
         "typing": {
           ".read": "auth != null",

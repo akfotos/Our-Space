@@ -41,6 +41,7 @@ export function useChat() {
   const [messages, setMessages] = useState([]);
   const [typing, setTypingState] = useState({});
   const [missYou, setMissYou] = useState(null);
+  const [error, setError] = useState(null);
   const typingTimeoutRef = useRef(null);
 
   const unreadCount = useMemo(() => {
@@ -61,6 +62,9 @@ export function useChat() {
         .map(([id, val]) => ({ id, ...val }))
         .sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
       setMessages(arr);
+    }, (err) => {
+      console.error('Chat messages listener error:', err);
+      setError(err.message || 'Failed to load messages.');
     });
     return unsub;
   }, [coupleId]);
@@ -74,6 +78,8 @@ export function useChat() {
         Object.entries(val).filter(([uid]) => uid !== user.uid)
       );
       setTypingState(others);
+    }, (err) => {
+      console.error('Chat typing listener error:', err);
     });
     return unsub;
   }, [user, coupleId]);
@@ -97,6 +103,8 @@ export function useChat() {
           tag: 'miss-you',
         });
       }
+    }, (err) => {
+      console.error('Chat missYou listener error:', err);
     });
     return unsub;
   }, [user, coupleId]);
@@ -129,8 +137,15 @@ export function useChat() {
     });
 
   const sendMessage = async (text) => {
-    if (!text.trim() || !user) return;
-    await pushMessage({ type: 'text', text: text.trim() });
+    if (!text.trim() || !user || !coupleId) return;
+    try {
+      await pushMessage({ type: 'text', text: text.trim() });
+      setError(null);
+    } catch (err) {
+      console.error('Send message error:', err);
+      setError(err.message || 'Failed to send message.');
+      throw err;
+    }
   };
 
   const sendFile = async (file, type, caption = '', onProgress) => {
@@ -153,12 +168,19 @@ export function useChat() {
   };
 
   const sendLink = async (url, caption = '') => {
-    if (!url || !user) return;
-    await pushMessage({
-      type: 'link',
-      text: caption.trim() || url,
-      url: url.trim(),
-    });
+    if (!url || !user || !coupleId) return;
+    try {
+      await pushMessage({
+        type: 'link',
+        text: caption.trim() || url,
+        url: url.trim(),
+      });
+      setError(null);
+    } catch (err) {
+      console.error('Send link error:', err);
+      setError(err.message || 'Failed to send link.');
+      throw err;
+    }
   };
 
   const updateTyping = async (isTyping) => {
@@ -242,6 +264,7 @@ export function useChat() {
     typing,
     missYou,
     unreadCount,
+    error,
     sendMessage,
     sendFile,
     sendScreen,

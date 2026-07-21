@@ -28,6 +28,7 @@ function Chat() {
     messages,
     typing,
     missYou,
+    error: chatError,
     sendMessage,
     sendLink,
     updateTyping,
@@ -116,9 +117,13 @@ function Chat() {
       return;
     }
     if (!text.trim()) return;
-    await sendMessage(text);
-    setText('');
-    updateTyping(false);
+    try {
+      await sendMessage(text);
+      setText('');
+      updateTyping(false);
+    } catch {
+      // error is already set in useChat
+    }
   };
 
   const onChange = (e) => {
@@ -248,6 +253,12 @@ function Chat() {
       {missYou && (
         <div className="absolute top-20 left-1/2 -translate-x-1/2 z-20 bg-rose-100/80 backdrop-blur-md border border-white/30 px-5 py-2 rounded-full shadow-lg text-sm text-rose-700 font-medium animate-pop-in">
           {missYou.from} sent a {'miss you'} ping!
+        </div>
+      )}
+
+      {chatError && (
+        <div className="mx-5 mt-3 p-3 bg-red-50/90 text-red-600 rounded-lg text-sm text-center">
+          {chatError}
         </div>
       )}
 
