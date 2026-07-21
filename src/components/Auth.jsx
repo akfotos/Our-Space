@@ -120,8 +120,10 @@ function Auth() {
 
   if (step === 'setup') {
     return (
-      <div className="flex min-h-[60vh] items-center justify-center px-4">
-        <div className="w-full max-w-sm bg-white/90 backdrop-blur-xl rounded-2xl shadow-lg p-8 text-center border border-rose-100">
+      <div className="relative flex min-h-[60vh] items-center justify-center px-4 overflow-hidden">
+        <div className="pointer-events-none absolute -top-16 -left-16 w-64 h-64 rounded-full bg-rose-300/30 blur-3xl animate-float" />
+        <div className="pointer-events-none absolute bottom-0 -right-16 w-72 h-72 rounded-full bg-rose-400/25 blur-3xl animate-float [animation-delay:1.5s]" />
+        <div className="relative w-full max-w-sm bg-white/80 backdrop-blur-xl rounded-2xl shadow-lg p-8 text-center border border-rose-100/50">
           <img
             src={`${import.meta.env.BASE_URL}Logo.png`}
             alt="Our Space"
@@ -239,8 +241,10 @@ function Auth() {
   }
 
   return (
-    <div className="flex min-h-[60vh] items-center justify-center px-4">
-      <div className="w-full max-w-sm bg-white rounded-2xl shadow-lg p-8 text-center border border-rose-100">
+    <div className="relative flex min-h-[60vh] items-center justify-center px-4 overflow-hidden">
+      <div className="pointer-events-none absolute -top-16 -left-16 w-64 h-64 rounded-full bg-rose-300/30 blur-3xl animate-float" />
+      <div className="pointer-events-none absolute bottom-0 -right-16 w-72 h-72 rounded-full bg-rose-400/25 blur-3xl animate-float [animation-delay:1.5s]" />
+      <div className="relative w-full max-w-sm bg-white/80 backdrop-blur-xl rounded-2xl shadow-lg p-8 text-center border border-rose-100/50">
         <img
           src={`${import.meta.env.BASE_URL}Logo.png`}
           alt="Our Space"

@@ -21,7 +21,7 @@ function BubbleBackground() {
       {bubbles.map((b, i) => (
         <div
           key={i}
-          className={`absolute top-full rounded-full ${b.color} opacity-40 blur-xl`}
+          className={`absolute top-full rounded-full ${b.color} opacity-60 blur-2xl`}
           style={{
             width: b.size,
             height: b.size,
