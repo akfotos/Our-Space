@@ -7,13 +7,42 @@
     <title>Our Space</title>
     <script>
       (function () {
-        const stored = localStorage.getItem('darkMode');
-        if (
-          stored === 'true' ||
-          (stored === null && window.matchMedia('(prefers-color-scheme: dark)').matches)
-        ) {
-          document.documentElement.classList.add('dark');
-        }
+        var settings = {};
+        try { settings = JSON.parse(localStorage.getItem('our-space-settings') || '{}'); } catch (e) {}
+        var isDark = settings.darkMode === true ||
+          (settings.darkMode === undefined && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        if (isDark) document.documentElement.classList.add('dark');
+
+        var themes = {
+          cream: {
+            light: { '--color-white':'255 255 255','--color-rose-50':'253 248 232','--color-rose-100':'250 240 210','--color-rose-200':'240 225 185','--color-rose-300':'190 210 165','--color-rose-400':'140 175 120','--color-rose-500':'80 140 80','--color-rose-600':'34 100 50','--color-rose-700':'22 78 45','--color-rose-800':'8 50 35','--color-rose-900':'3 35 25','--color-slate-50':'247 250 245','--color-slate-100':'232 239 226','--color-slate-200':'201 214 190','--color-slate-300':'170 190 155','--color-slate-400':'130 155 115','--color-slate-500':'90 120 85','--color-slate-600':'65 95 60','--color-slate-700':'45 70 42','--color-slate-800':'30 50 36','--color-slate-900':'18 35 26' },
+            dark: { '--color-white':'6 78 59','--color-rose-50':'3 25 18','--color-rose-100':'6 45 32','--color-rose-200':'12 60 40','--color-rose-300':'30 90 65','--color-rose-400':'80 130 90','--color-rose-500':'190 225 170','--color-rose-600':'255 253 245','--color-rose-700':'253 248 232','--color-rose-800':'250 240 210','--color-rose-900':'240 230 185','--color-slate-50':'3 25 18','--color-slate-100':'6 45 32','--color-slate-200':'15 70 50','--color-slate-300':'40 100 70','--color-slate-400':'150 190 160','--color-slate-500':'190 220 195','--color-slate-600':'220 240 225','--color-slate-700':'240 248 235','--color-slate-800':'250 252 245','--color-slate-900':'255 255 255' }
+          },
+          rose: {
+            light: { '--color-white':'255 255 255','--color-rose-50':'255 241 242','--color-rose-100':'255 228 230','--color-rose-200':'254 205 211','--color-rose-300':'253 164 175','--color-rose-400':'251 113 133','--color-rose-500':'244 63 94','--color-rose-600':'225 29 72','--color-rose-700':'190 18 60','--color-rose-800':'159 18 57','--color-rose-900':'136 19 55','--color-slate-50':'248 250 252','--color-slate-100':'241 245 249','--color-slate-200':'226 232 240','--color-slate-300':'203 213 225','--color-slate-400':'148 163 184','--color-slate-500':'100 116 139','--color-slate-600':'71 85 105','--color-slate-700':'51 65 85','--color-slate-800':'30 41 59','--color-slate-900':'15 23 42' },
+            dark: { '--color-white':'30 20 25','--color-rose-50':'20 12 16','--color-rose-100':'35 20 28','--color-rose-200':'50 25 38','--color-rose-300':'80 35 55','--color-rose-400':'140 60 80','--color-rose-500':'200 100 120','--color-rose-600':'251 113 133','--color-rose-700':'253 164 175','--color-rose-800':'254 205 211','--color-rose-900':'255 228 230','--color-slate-50':'15 12 16','--color-slate-100':'25 18 24','--color-slate-200':'40 28 38','--color-slate-300':'65 45 60','--color-slate-400':'120 100 115','--color-slate-500':'170 150 165','--color-slate-600':'200 185 195','--color-slate-700':'225 215 225','--color-slate-800':'240 235 240','--color-slate-900':'255 255 255' }
+          },
+          blue: {
+            light: { '--color-white':'255 255 255','--color-rose-50':'239 246 255','--color-rose-100':'219 234 254','--color-rose-200':'191 219 254','--color-rose-300':'147 197 253','--color-rose-400':'96 165 250','--color-rose-500':'59 130 246','--color-rose-600':'37 99 235','--color-rose-700':'29 78 216','--color-rose-800':'30 64 175','--color-rose-900':'30 58 138','--color-slate-50':'248 250 252','--color-slate-100':'241 245 249','--color-slate-200':'226 232 240','--color-slate-300':'203 213 225','--color-slate-400':'148 163 184','--color-slate-500':'100 116 139','--color-slate-600':'71 85 105','--color-slate-700':'51 65 85','--color-slate-800':'30 41 59','--color-slate-900':'15 23 42' },
+            dark: { '--color-white':'15 30 55','--color-rose-50':'10 20 40','--color-rose-100':'18 35 60','--color-rose-200':'25 50 80','--color-rose-300':'40 75 120','--color-rose-400':'80 130 200','--color-rose-500':'120 170 230','--color-rose-600':'160 200 250','--color-rose-700':'190 220 255','--color-rose-800':'219 234 254','--color-rose-900':'239 246 255','--color-slate-50':'10 20 40','--color-slate-100':'18 32 55','--color-slate-200':'28 50 80','--color-slate-300':'50 80 120','--color-slate-400':'130 160 200','--color-slate-500':'170 195 225','--color-slate-600':'200 220 240','--color-slate-700':'225 238 250','--color-slate-800':'240 248 255','--color-slate-900':'255 255 255' }
+          },
+          purple: {
+            light: { '--color-white':'255 255 255','--color-rose-50':'250 245 255','--color-rose-100':'243 232 255','--color-rose-200':'233 213 255','--color-rose-300':'216 180 254','--color-rose-400':'192 132 252','--color-rose-500':'168 85 247','--color-rose-600':'147 51 234','--color-rose-700':'126 34 206','--color-rose-800':'107 33 168','--color-rose-900':'88 28 135','--color-slate-50':'248 250 252','--color-slate-100':'241 245 249','--color-slate-200':'226 232 240','--color-slate-300':'203 213 225','--color-slate-400':'148 163 184','--color-slate-500':'100 116 139','--color-slate-600':'71 85 105','--color-slate-700':'51 65 85','--color-slate-800':'30 41 59','--color-slate-900':'15 23 42' },
+            dark: { '--color-white':'35 20 55','--color-rose-50':'20 12 35','--color-rose-100':'35 20 55','--color-rose-200':'50 28 78','--color-rose-300':'75 40 110','--color-rose-400':'130 80 180','--color-rose-500':'180 130 230','--color-rose-600':'210 170 250','--color-rose-700':'225 195 255','--color-rose-800':'238 220 255','--color-rose-900':'248 235 255','--color-slate-50':'18 12 30','--color-slate-100':'28 18 45','--color-slate-200':'42 28 65','--color-slate-300':'65 45 95','--color-slate-400':'130 110 170','--color-slate-500':'175 160 205','--color-slate-600':'205 195 225','--color-slate-700':'228 222 240','--color-slate-800':'242 240 250','--color-slate-900':'255 255 255' }
+          },
+          teal: {
+            light: { '--color-white':'255 255 255','--color-rose-50':'240 253 250','--color-rose-100':'204 251 241','--color-rose-200':'153 246 228','--color-rose-300':'94 234 212','--color-rose-400':'45 212 191','--color-rose-500':'20 184 166','--color-rose-600':'13 148 136','--color-rose-700':'15 118 110','--color-rose-800':'17 94 89','--color-rose-900':'19 78 74','--color-slate-50':'248 250 252','--color-slate-100':'241 245 249','--color-slate-200':'226 232 240','--color-slate-300':'203 213 225','--color-slate-400':'148 163 184','--color-slate-500':'100 116 139','--color-slate-600':'71 85 105','--color-slate-700':'51 65 85','--color-slate-800':'30 41 59','--color-slate-900':'15 23 42' },
+            dark: { '--color-white':'10 50 45','--color-rose-50':'5 30 28','--color-rose-100':'10 45 42','--color-rose-200':'15 65 60','--color-rose-300':'25 90 85','--color-rose-400':'50 140 130','--color-rose-500':'100 190 180','--color-rose-600':'150 220 210','--color-rose-700':'190 240 230','--color-rose-800':'220 250 242','--color-rose-900':'240 253 250','--color-slate-50':'5 28 25','--color-slate-100':'10 42 38','--color-slate-200':'18 60 55','--color-slate-300':'30 85 78','--color-slate-400':'100 150 140','--color-slate-500':'150 190 180','--color-slate-600':'190 220 210','--color-slate-700':'220 240 232','--color-slate-800':'240 250 245','--color-slate-900':'255 255 255' }
+          },
+          sunset: {
+            light: { '--color-white':'255 255 255','--color-rose-50':'255 247 237','--color-rose-100':'255 237 213','--color-rose-200':'254 215 170','--color-rose-300':'253 186 116','--color-rose-400':'251 146 60','--color-rose-500':'249 115 22','--color-rose-600':'234 88 12','--color-rose-700':'215 68 25','--color-rose-800':'180 55 20','--color-rose-900':'150 45 18','--color-slate-50':'248 250 252','--color-slate-100':'241 245 249','--color-slate-200':'226 232 240','--color-slate-300':'203 213 225','--color-slate-400':'148 163 184','--color-slate-500':'100 116 139','--color-slate-600':'71 85 105','--color-slate-700':'51 65 85','--color-slate-800':'30 41 59','--color-slate-900':'15 23 42' },
+            dark: { '--color-white':'45 25 15','--color-rose-50':'25 15 8','--color-rose-100':'40 22 12','--color-rose-200':'55 30 15','--color-rose-300':'80 45 20','--color-rose-400':'140 85 40','--color-rose-500':'200 140 70','--color-rose-600':'240 180 110','--color-rose-700':'252 210 160','--color-rose-800':'254 230 195','--color-rose-900':'255 245 225','--color-slate-50':'22 14 8','--color-slate-100':'35 22 14','--color-slate-200':'50 32 20','--color-slate-300':'75 50 30','--color-slate-400':'140 110 80','--color-slate-500':'185 160 130','--color-slate-600':'215 195 170','--color-slate-700':'235 222 200','--color-slate-800':'248 240 225','--color-slate-900':'255 255 255' }
+          }
+        };
+        var themeKey = settings.themeColor || 'cream';
+        var theme = themes[themeKey] || themes.cream;
+        var vars = isDark ? theme.dark : theme.light;
+        for (var key in vars) { document.documentElement.style.setProperty(key, vars[key]); }
       })();
     </script>
     <script src="https://www.youtube.com/iframe_api"></script>

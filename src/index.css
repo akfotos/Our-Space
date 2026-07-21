@@ -2,55 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  /* cream & dark green light theme */
-  --color-white: 255 255 255;
-  --color-rose-50: 253 248 232;
-  --color-rose-100: 250 240 210;
-  --color-rose-200: 240 225 185;
-  --color-rose-300: 190 210 165;
-  --color-rose-400: 140 175 120;
-  --color-rose-500: 80 140 80;
-  --color-rose-600: 34 100 50;
-  --color-rose-700: 22 78 45;
-  --color-rose-800: 8 50 35;
-  --color-rose-900: 3 35 25;
-  --color-slate-50: 247 250 245;
-  --color-slate-100: 232 239 226;
-  --color-slate-200: 201 214 190;
-  --color-slate-300: 170 190 155;
-  --color-slate-400: 130 155 115;
-  --color-slate-500: 90 120 85;
-  --color-slate-600: 65 95 60;
-  --color-slate-700: 45 70 42;
-  --color-slate-800: 30 50 36;
-  --color-slate-900: 18 35 26;
-}
-
-.dark {
-  --color-white: 6 78 59;
-  --color-rose-50: 3 25 18;
-  --color-rose-100: 6 45 32;
-  --color-rose-200: 12 60 40;
-  --color-rose-300: 30 90 65;
-  --color-rose-400: 80 130 90;
-  --color-rose-500: 190 225 170;
-  --color-rose-600: 255 253 245;
-  --color-rose-700: 253 248 232;
-  --color-rose-800: 250 240 210;
-  --color-rose-900: 240 230 185;
-  --color-slate-50: 3 25 18;
-  --color-slate-100: 6 45 32;
-  --color-slate-200: 15 70 50;
-  --color-slate-300: 40 100 70;
-  --color-slate-400: 150 190 160;
-  --color-slate-500: 190 220 195;
-  --color-slate-600: 220 240 225;
-  --color-slate-700: 240 248 235;
-  --color-slate-800: 250 252 245;
-  --color-slate-900: 255 255 255;
-}
-
 @layer base {
   body {
     @apply bg-rose-50 text-slate-800 antialiased;

@@ -13,6 +13,7 @@ import {
   Check,
   UserCog,
   LogOut,
+  Palette,
 } from 'lucide-react';
 import { useSettings } from '../contexts/SettingsContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -26,6 +27,7 @@ import {
 } from '../utils/biometric';
 import { doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
+import { THEMES, THEME_KEYS } from '../themes';
 
 function Toggle({ label, description, checked, onChange }) {
   return (
@@ -243,6 +245,42 @@ function Settings() {
           checked={settings.darkMode}
           onChange={(v) => setSetting('darkMode', v)}
         />
+        <div className="border-t border-white/30 pt-4">
+          <label className="block font-semibold text-slate-700 mb-1">Color theme</label>
+          <p className="text-sm text-slate-500 mb-3">Choose how your app looks. This syncs with your partner.</p>
+          <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+            {THEME_KEYS.map((key) => {
+              const t = THEMES[key];
+              const active = settings.themeColor === key;
+              return (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => setSetting('themeColor', key)}
+                  className={`relative rounded-2xl p-3 border-2 transition ${
+                    active ? 'border-rose-500 ring-2 ring-rose-200' : 'border-white/30 hover:border-white/60'
+                  }`}
+                >
+                  <div className="flex gap-1 mb-2">
+                    {[400, 500, 600].map((shade) => (
+                      <span
+                        key={shade}
+                        className="w-5 h-5 rounded-full"
+                        style={{ backgroundColor: `rgb(${t.light[`--color-rose-${shade}`]})` }}
+                      />
+                    ))}
+                  </div>
+                  <span className="text-xs font-medium text-slate-600 block text-left">{t.name}</span>
+                  {active && (
+                    <span className="absolute top-1.5 right-1.5">
+                      <Check size={14} className="text-rose-600" />
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
       </Card>
 
       <Card icon={Calendar} title="Reunion">

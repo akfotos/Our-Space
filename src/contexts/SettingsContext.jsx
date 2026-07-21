@@ -4,9 +4,11 @@ import { auth, db } from '../firebaseConfig';
 import { onAuthStateChanged } from 'firebase/auth';
 import { doc, onSnapshot, setDoc } from 'firebase/firestore';
 import { useCouple } from './CoupleContext';
+import { applyTheme } from '../themes';
 
 const defaults = {
   darkMode: false,
+  themeColor: 'cream',
   reunionDate: REUNION_DATE.toISOString(),
   showSeconds: true,
   showWeather: true,
@@ -29,6 +31,7 @@ const SYNCED_KEYS = [
   'showCheckIn',
   'showMissYou',
   'showBibleVerse',
+  'themeColor',
 ];
 
 function loadSettings() {
@@ -110,7 +113,8 @@ export function SettingsProvider({ children }) {
     } else {
       document.documentElement.classList.remove('dark');
     }
-  }, [settings.darkMode]);
+    applyTheme(settings.themeColor, settings.darkMode);
+  }, [settings.darkMode, settings.themeColor]);
 
   const setSetting = (key, value) =>
     setSettingsState((prev) => ({ ...prev, [key]: value }));
