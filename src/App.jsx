@@ -16,9 +16,9 @@ import Settings from './pages/Settings';
 
 function App() {
   return (
-    <SettingsProvider>
-      <AuthProvider>
-        <CoupleProvider>
+    <AuthProvider>
+      <CoupleProvider>
+        <SettingsProvider>
           <PresenceProvider>
             <div className="relative min-h-screen flex flex-col">
               <BubbleBackground />
@@ -36,9 +36,9 @@ function App() {
               </main>
             </div>
           </PresenceProvider>
-        </CoupleProvider>
-      </AuthProvider>
-    </SettingsProvider>
+        </SettingsProvider>
+      </CoupleProvider>
+    </AuthProvider>
   );
 }
 
