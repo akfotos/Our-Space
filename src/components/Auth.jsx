@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Navigate } from 'react-router-dom';
 import { Calendar, MapPin } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { getPosition, getLocationLabel } from '../utils/geo';
@@ -107,16 +108,7 @@ function Auth() {
     );
   }
 
-  if (user) {
-    return (
-      <div className="flex min-h-[60vh] items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-rose-600">Welcome, {user.displayName}</h1>
-          <p className="mt-2 text-slate-600">Redirecting...</p>
-        </div>
-      </div>
-    );
-  }
+  if (user) return <Navigate to="/" replace />;
 
   if (step === 'setup') {
     return (

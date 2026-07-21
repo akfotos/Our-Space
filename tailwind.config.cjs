@@ -59,6 +59,25 @@ module.exports = {
           '0%, 100%': { transform: 'translateY(0)' },
           '50%': { transform: 'translateY(-3px)' },
         },
+        welcomeIn: {
+          '0%': { opacity: '0', transform: 'translateY(24px) scale(0.96)' },
+          '100%': { opacity: '1', transform: 'translateY(0) scale(1)' },
+        },
+        logoReveal: {
+          '0%': { opacity: '0', transform: 'scale(0.6) rotate(-8deg)' },
+          '70%': { transform: 'scale(1.08) rotate(2deg)' },
+          '100%': { opacity: '1', transform: 'scale(1) rotate(0)' },
+        },
+        heartBeat: {
+          '0%, 100%': { transform: 'scale(1)' },
+          '20%': { transform: 'scale(1.22)' },
+          '35%': { transform: 'scale(1)' },
+          '50%': { transform: 'scale(1.14)' },
+        },
+        welcomeProgress: {
+          '0%': { transform: 'translateX(-100%)' },
+          '100%': { transform: 'translateX(0)' },
+        },
         bubble: {
           '0%': { transform: 'translateY(0) translateX(0)', opacity: '0' },
           '5%': { opacity: '0.4' },
@@ -76,6 +95,10 @@ module.exports = {
         'pop-in': 'popIn 0.25s ease-out forwards',
         'pulse-soft': 'pulseSoft 1.4s infinite',
         'float': 'float 3s ease-in-out infinite',
+        'welcome-in': 'welcomeIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) both',
+        'logo-reveal': 'logoReveal 0.8s cubic-bezier(0.16, 1, 0.3, 1) both',
+        'heart-beat': 'heartBeat 1.1s ease-in-out 0.7s infinite',
+        'welcome-progress': 'welcomeProgress 1.8s ease-out both',
         'bubble': 'bubble 15s linear infinite',
       },
     },
