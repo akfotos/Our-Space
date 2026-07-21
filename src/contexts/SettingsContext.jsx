@@ -15,8 +15,21 @@ const defaults = {
   showAffirmations: true,
   showCheckIn: true,
   showMissYou: true,
+  showBibleVerse: true,
   faceLock: false,
 };
+
+const SYNCED_KEYS = [
+  'reunionDate',
+  'showSeconds',
+  'showWeather',
+  'showQuote',
+  'showDistance',
+  'showAffirmations',
+  'showCheckIn',
+  'showMissYou',
+  'showBibleVerse',
+];
 
 function loadSettings() {
   if (typeof window === 'undefined') return defaults;
@@ -36,7 +49,7 @@ export function SettingsProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(null);
   const [loaded, setLoaded] = useState(false);
   const settingsRef = useRef(settings);
-  const remoteDateRef = useRef(null);
+  const remoteRef = useRef({});
   const { coupleId } = useCouple();
 
   useEffect(() => {
@@ -54,12 +67,18 @@ export function SettingsProvider({ children }) {
     const unsub = onSnapshot(settingsDoc, (snap) => {
       if (snap.exists()) {
         const data = snap.data();
-        remoteDateRef.current = data.reunionDate || null;
-        if (data.reunionDate && data.reunionDate !== settingsRef.current.reunionDate) {
-          setSettingsState((prev) => ({ ...prev, reunionDate: data.reunionDate }));
-        }
+        remoteRef.current = data;
+        setSettingsState((prev) => {
+          const next = { ...prev };
+          for (const key of SYNCED_KEYS) {
+            if (data[key] !== undefined && data[key] !== prev[key]) {
+              next[key] = data[key];
+            }
+          }
+          return next;
+        });
       } else {
-        remoteDateRef.current = null;
+        remoteRef.current = {};
       }
       setLoaded(true);
     });
@@ -68,12 +87,18 @@ export function SettingsProvider({ children }) {
 
   useEffect(() => {
     if (!loaded || !currentUser || !coupleId) return;
-    if (settings.reunionDate && settings.reunionDate !== remoteDateRef.current) {
-      setDoc(doc(db, 'couples', coupleId, 'settings', 'shared'), { reunionDate: settings.reunionDate }, { merge: true }).catch(
+    const diff = {};
+    for (const key of SYNCED_KEYS) {
+      if (settings[key] !== undefined && settings[key] !== remoteRef.current[key]) {
+        diff[key] = settings[key];
+      }
+    }
+    if (Object.keys(diff).length > 0) {
+      setDoc(doc(db, 'couples', coupleId, 'settings', 'shared'), diff, { merge: true }).catch(
         () => {}
       );
     }
-  }, [settings.reunionDate, loaded, currentUser, coupleId]);
+  }, [settings, loaded, currentUser, coupleId]);
 
   useEffect(() => {
     localStorage.setItem('our-space-settings', JSON.stringify(settings));

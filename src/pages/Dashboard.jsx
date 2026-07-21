@@ -122,9 +122,11 @@ function Dashboard() {
         )}
       </header>
 
-      <section className="animate-fade-in-up [animation-delay:0.05s]">
-        <BibleQuote />
-      </section>
+      {settings.showBibleVerse && (
+        <section className="animate-fade-in-up [animation-delay:0.05s]">
+          <BibleQuote />
+        </section>
+      )}
 
       <section className="animate-fade-in-up [animation-delay:0.1s]">
         <Countdown />

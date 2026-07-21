@@ -8,15 +8,24 @@ import {
   Layout,
   Lock,
   Fingerprint,
+  Heart,
+  Copy,
+  Check,
+  UserCog,
+  LogOut,
 } from 'lucide-react';
 import { useSettings } from '../contexts/SettingsContext';
 import { useAuth } from '../contexts/AuthContext';
+import { useCouple } from '../contexts/CoupleContext';
+import { useNavigate } from 'react-router-dom';
 import {
   supportsBiometric,
   registerCredential,
   clearCredential,
   hasCredential,
 } from '../utils/biometric';
+import { doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { db } from '../firebaseConfig';
 
 function Toggle({ label, description, checked, onChange }) {
   return (
@@ -57,8 +66,13 @@ function Card({ icon: Icon, title, children }) {
 
 function Settings() {
   const { settings, setSetting } = useSettings();
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
+  const { couple, coupleId, members, myProfile, partner, updateMemberName } = useCouple();
+  const navigate = useNavigate();
   const [faceError, setFaceError] = useState('');
+  const [copied, setCopied] = useState(false);
+  const [editingName, setEditingName] = useState(false);
+  const [tempName, setTempName] = useState(myProfile?.name || '');
 
   const handleFaceLock = async (enabled) => {
     setFaceError('');
@@ -83,12 +97,144 @@ function Settings() {
     }
   };
 
+  const handleCopyCode = () => {
+    if (!couple?.code) return;
+    navigator.clipboard.writeText(couple.code).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }).catch(() => {});
+  };
+
+  const handleSaveName = async () => {
+    if (tempName.trim()) {
+      await updateMemberName(tempName.trim());
+    }
+    setEditingName(false);
+  };
+
+  const handleLeaveCouple = async () => {
+    if (!user || !couple) return;
+    const updatedMembers = couple.members
+      .filter((m) => m.uid !== user.uid)
+      .map((m) => m.uid ? m : { name: m.name });
+    try {
+      if (updatedMembers.length === 0) {
+        await deleteDoc(doc(db, 'couples', couple.id));
+      } else {
+        await updateDoc(doc(db, 'couples', couple.id), { members: updatedMembers });
+      }
+      await updateDoc(doc(db, 'users', user.uid), { coupleId: null }, { merge: true });
+      await signOut();
+      navigate('/login');
+    } catch (err) {
+      console.error('Failed to leave couple', err);
+    }
+  };
+
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       <h2 className="text-3xl font-black text-slate-700 flex items-center gap-2">
         <SettingsIcon size={28} className="text-rose-600" />
         Settings
       </h2>
+
+      <Card icon={Heart} title="Couple">
+        {couple ? (
+          <>
+            <div>
+              <label className="block font-semibold text-slate-700">Couple code</label>
+              <p className="text-sm text-slate-500 mb-2">
+                Share this code with your partner to link accounts
+              </p>
+              <div className="flex items-center gap-2">
+                <span className="text-2xl font-black tracking-widest text-rose-700 bg-rose-50 rounded-xl px-4 py-2">
+                  {couple.code}
+                </span>
+                <button
+                  type="button"
+                  onClick={handleCopyCode}
+                  className="p-2 rounded-lg bg-white/60 hover:bg-white text-slate-600 transition"
+                  aria-label="Copy code"
+                >
+                  {copied ? <Check size={18} className="text-green-600" /> : <Copy size={18} />}
+                </button>
+              </div>
+            </div>
+
+            <div className="border-t border-white/30 pt-4">
+              <label className="block font-semibold text-slate-700 mb-2">Members</label>
+              <div className="space-y-2">
+                {members.map((m) => (
+                  <div key={m.uid || 'pending'} className="flex items-center gap-2 text-sm">
+                    <span className="w-2.5 h-2.5 rounded-full bg-rose-400" />
+                    <span className="font-medium text-slate-700">{m.name || 'Unknown'}</span>
+                    {m.uid === user?.uid && (
+                      <span className="text-xs text-slate-400">(you)</span>
+                    )}
+                    {!m.uid && (
+                      <span className="text-xs text-slate-400">(not joined yet)</span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {editingName ? (
+              <div className="border-t border-white/30 pt-4">
+                <label className="block font-semibold text-slate-700 mb-2">Your display name</label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={tempName}
+                    onChange={(e) => setTempName(e.target.value)}
+                    className="flex-1 rounded-xl border border-white/30 bg-white/40 px-4 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-rose-300"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleSaveName}
+                    className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-medium transition"
+                  >
+                    Save
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setEditingName(false); setTempName(myProfile?.name || ''); }}
+                    className="px-4 py-2 bg-white/60 hover:bg-white text-slate-600 rounded-xl font-medium transition"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="border-t border-white/30 pt-4 flex items-center justify-between">
+                <div>
+                  <p className="font-semibold text-slate-700">Your name</p>
+                  <p className="text-sm text-slate-500">{myProfile?.name || 'Not set'}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => { setTempName(myProfile?.name || ''); setEditingName(true); }}
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white/60 hover:bg-white text-slate-600 text-sm font-medium transition"
+                >
+                  <UserCog size={16} /> Edit
+                </button>
+              </div>
+            )}
+
+            <div className="border-t border-white/30 pt-4">
+              <button
+                type="button"
+                onClick={handleLeaveCouple}
+                className="flex items-center gap-1.5 text-sm text-red-600 hover:text-red-700 font-medium transition"
+              >
+                <LogOut size={16} /> Leave couple
+              </button>
+            </div>
+          </>
+        ) : (
+          <p className="text-sm text-slate-500">No couple linked yet. Set up your space from the login page.</p>
+        )}
+      </Card>
 
       <Card icon={Sun} title="Appearance">
         <Toggle
@@ -157,6 +303,12 @@ function Settings() {
           description="Show the miss you ping card"
           checked={settings.showMissYou}
           onChange={(v) => setSetting('showMissYou', v)}
+        />
+        <Toggle
+          label="Bible verse"
+          description="Show the shared Bible verse section"
+          checked={settings.showBibleVerse}
+          onChange={(v) => setSetting('showBibleVerse', v)}
         />
       </Card>
 
