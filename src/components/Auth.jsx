@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Calendar, MapPin } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { getPosition, getLocationLabel } from '../utils/geo';
@@ -34,7 +34,7 @@ function defaultReunionDate() {
 
 function Auth() {
   const { user, loading, error, signIn, signInWithEmail, signUpWithEmail } = useAuth();
-  const [step, setStep] = useState('setup');
+  const [step, setStep] = useState(() => (loadOnboarding() ? 'auth' : 'setup'));
   const [onboarding, setOnboarding] = useState(() => loadOnboarding() || {
     myName: '',
     partnerName: '',
@@ -46,11 +46,6 @@ function Auth() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [locating, setLocating] = useState(false);
-
-  useEffect(() => {
-    const saved = loadOnboarding();
-    if (saved) setStep('auth');
-  }, []);
 
   const handleSetup = (e) => {
     e.preventDefault();

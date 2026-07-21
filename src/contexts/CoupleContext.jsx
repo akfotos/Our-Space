@@ -48,38 +48,53 @@ export function CoupleProvider({ children }) {
 
     setLoading(true);
     const userRef = doc(db, 'users', user.uid);
-    const unsub = onSnapshot(userRef, async (snap) => {
-      if (!snap.exists()) {
-        await setDoc(userRef, {
-          email: user.email,
-          displayName: user.displayName || user.email?.split('@')[0] || 'Partner',
-          createdAt: serverTimestamp(),
-        }).catch(() => {});
-      }
+    const unsub = onSnapshot(
+      userRef,
+      async (snap) => {
+        try {
+          if (!snap.exists()) {
+            await setDoc(userRef, {
+              email: user.email,
+              displayName: user.displayName || user.email?.split('@')[0] || 'Partner',
+              createdAt: serverTimestamp(),
+            }).catch(() => {});
+            return;
+          }
 
-      const userData = snap.data() || {};
-      if (!userData.coupleId) {
-        const onboarding = loadOnboarding();
-        if (onboarding && !creatingRef.current) {
-          creatingRef.current = true;
-          await createFromOnboarding(user, onboarding).finally(() => {
-            creatingRef.current = false;
-          });
+          const userData = snap.data() || {};
+          if (!userData.coupleId) {
+            const onboarding = loadOnboarding();
+            if (onboarding && !creatingRef.current) {
+              creatingRef.current = true;
+              await createFromOnboarding(user, onboarding).finally(() => {
+                creatingRef.current = false;
+              });
+            }
+            setCouple(null);
+            setLoading(false);
+            return;
+          }
+
+          const coupleRef = doc(db, 'couples', userData.coupleId);
+          const coupleSnap = await getDoc(coupleRef);
+          if (coupleSnap.exists()) {
+            setCouple({ id: coupleSnap.id, ...coupleSnap.data() });
+          } else {
+            setCouple(null);
+          }
+          setLoading(false);
+        } catch (err) {
+          setError(err.message || 'Failed to load couple data.');
+          setCouple(null);
+          setLoading(false);
         }
+      },
+      (err) => {
+        setError(err.message || 'Permission denied loading user data.');
         setCouple(null);
         setLoading(false);
-        return;
       }
-
-      const coupleRef = doc(db, 'couples', userData.coupleId);
-      const coupleSnap = await getDoc(coupleRef);
-      if (coupleSnap.exists()) {
-        setCouple({ id: coupleSnap.id, ...coupleSnap.data() });
-      } else {
-        setCouple(null);
-      }
-      setLoading(false);
-    });
+    );
 
     return unsub;
   }, [user]);

@@ -31,8 +31,9 @@ function Dashboard() {
   const status = (uid) => presence[uid] || { online: false };
 
   useEffect(() => {
-    if (!members.length) return;
-    const unsubs = members.map((m) =>
+    const validMembers = members.filter((m) => m.uid);
+    if (!validMembers.length) return;
+    const unsubs = validMembers.map((m) =>
       onSnapshot(doc(db, 'userLocations', m.uid), (snap) => {
         if (snap.exists()) {
           setLocations((prev) => ({ ...prev, [m.uid]: snap.data() }));
@@ -103,7 +104,7 @@ function Dashboard() {
         </p>
         {members.length > 0 && (
           <div className="mt-4 flex flex-wrap items-center justify-center gap-4">
-            {members.map((m, i) => (
+            {members.filter((m) => m.uid).map((m) => (
               <OnlineStatus
                 key={m.uid}
                 online={status(m.uid).online}
@@ -113,9 +114,9 @@ function Dashboard() {
             ))}
           </div>
         )}
-        {members.length === 1 && couple?.code && (
+        {members.filter((m) => m.uid).length === 1 && couple?.code && (
           <div className="mt-4 mx-auto max-w-sm bg-rose-100/70 backdrop-blur-sm text-rose-800 rounded-2xl px-4 py-3 text-sm font-medium border border-rose-200/50 animate-pop-in">
-            Share this code with {members[0]?.uid !== user?.uid ? members[0]?.name : (members[1]?.name || 'your partner')}:{' '}
+            Share this code with {members.find((m) => !m.uid)?.name || 'your partner'}:{' '}
             <span className="font-black tracking-widest select-all">{couple.code}</span>
           </div>
         )}

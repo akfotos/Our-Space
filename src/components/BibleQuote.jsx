@@ -209,7 +209,7 @@ function BibleQuote() {
       }
     });
     return unsub;
-  }, []);
+  }, [coupleId]);
 
   useEffect(() => {
     if (!coupleId) return;
