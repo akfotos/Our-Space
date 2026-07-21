@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import {
   doc,
   getDoc,
@@ -11,6 +11,22 @@ import { db } from '../firebaseConfig';
 import { useAuth } from './AuthContext';
 
 const CoupleContext = createContext(null);
+const ONBOARDING_KEY = 'our-space-onboarding';
+
+function loadOnboarding() {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = localStorage.getItem(ONBOARDING_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+function clearOnboarding() {
+  if (typeof window === 'undefined') return;
+  localStorage.removeItem(ONBOARDING_KEY);
+}
 
 function generateCode() {
   return Math.random().toString(36).slice(2, 8).toUpperCase();
@@ -21,6 +37,7 @@ export function CoupleProvider({ children }) {
   const [couple, setCouple] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const creatingRef = useRef(false);
 
   useEffect(() => {
     if (!user) {
@@ -38,13 +55,17 @@ export function CoupleProvider({ children }) {
           displayName: user.displayName || user.email?.split('@')[0] || 'Partner',
           createdAt: serverTimestamp(),
         }).catch(() => {});
-        setCouple(null);
-        setLoading(false);
-        return;
       }
 
-      const userData = snap.data();
+      const userData = snap.data() || {};
       if (!userData.coupleId) {
+        const onboarding = loadOnboarding();
+        if (onboarding && !creatingRef.current) {
+          creatingRef.current = true;
+          await createFromOnboarding(user, onboarding).finally(() => {
+            creatingRef.current = false;
+          });
+        }
         setCouple(null);
         setLoading(false);
         return;
@@ -63,9 +84,47 @@ export function CoupleProvider({ children }) {
     return unsub;
   }, [user]);
 
+  const createFromOnboarding = async (currentUser, onboarding) => {
+    const code = generateCode();
+    const coupleRef = doc(db, 'couples', code);
+    const myName = currentUser.displayName || onboarding.myName || currentUser.email?.split('@')[0] || 'Partner';
+
+    try {
+      await setDoc(doc(db, 'users', currentUser.uid), { coupleId: code }, { merge: true });
+      await setDoc(coupleRef, {
+        code,
+        members: [
+          { uid: currentUser.uid, email: currentUser.email, name: myName },
+          { name: onboarding.partnerName || 'Partner' },
+        ],
+        createdAt: serverTimestamp(),
+      });
+      await setDoc(doc(db, 'couples', code, 'settings', 'shared'), { reunionDate: onboarding.reunionDate }, { merge: true });
+
+      if (onboarding.location) {
+        await setDoc(doc(db, 'userLocations', currentUser.uid), {
+          ...onboarding.location,
+          name: myName,
+          email: currentUser.email,
+          coupleId: code,
+          timestamp: serverTimestamp(),
+        }, { merge: true });
+      }
+
+      clearOnboarding();
+      return code;
+    } catch (err) {
+      setError(err.message || 'Could not create couple from onboarding.');
+      return null;
+    }
+  };
+
   const createCouple = async () => {
     if (!user) return;
     setError('');
+    const onboarding = loadOnboarding();
+    if (onboarding) return createFromOnboarding(user, onboarding);
+
     const code = generateCode();
     const coupleRef = doc(db, 'couples', code);
     const name = user.displayName || user.email?.split('@')[0] || 'Partner';
@@ -105,16 +164,22 @@ export function CoupleProvider({ children }) {
         return true;
       }
 
-      if (data.members && data.members.length >= 2) {
+      if (data.members && data.members.length >= 2 && data.members.every((m) => m.uid)) {
         setError('This couple already has two members.');
         return false;
       }
 
       const name = user.displayName || user.email?.split('@')[0] || 'Partner';
+      const pendingIndex = data.members?.findIndex((m) => !m.uid);
+      let members;
+      if (pendingIndex >= 0) {
+        members = data.members.map((m, i) => (i === pendingIndex ? { ...m, uid: user.uid, email: user.email, name } : m));
+      } else {
+        members = [...(data.members || []), { uid: user.uid, email: user.email, name }];
+      }
+
       await setDoc(doc(db, 'users', user.uid), { coupleId: clean }, { merge: true });
-      await updateDoc(coupleRef, {
-        members: [...(data.members || []), { uid: user.uid, email: user.email, name }],
-      });
+      await updateDoc(coupleRef, { members });
       return true;
     } catch (err) {
       setError(err.message || 'Could not join couple.');
