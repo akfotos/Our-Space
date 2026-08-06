@@ -48,6 +48,7 @@ export function usePlayerSync(containerId) {
   const { coupleId } = useCouple();
   const [ready, setReady] = useState(false);
   const [videoId, setVideoId] = useState('');
+  const [playerError, setPlayerError] = useState('');
   const playerRef = useRef(null);
   const videoIdRef = useRef('');
   const localUpdateRef = useRef(false);
@@ -71,12 +72,30 @@ export function usePlayerSync(containerId) {
         width: '100%',
         height: '100%',
         videoId: '',
-        playerVars: { rel: 0, enablejsapi: 1 },
+        playerVars: {
+          rel: 0,
+          enablejsapi: 1,
+          origin: window.location.origin,
+          playsinline: 1,
+        },
         events: {
           onReady: () => setReady(true),
+          onError: (event) => {
+            const messages = {
+              2: 'Invalid video link.',
+              5: 'This video cannot be played in this embedded player.',
+              100: 'This video was not found or has been removed.',
+              101: 'The video owner does not allow embedding.',
+              150: 'The video owner does not allow embedding.',
+            };
+            setPlayerError(messages[event.data] || 'This video could not be played here.');
+          },
           onStateChange: (event) => {
             if (syncGuardRef.current || !playerRef.current) return;
             const state = event.data;
+            if (state === YT.PlayerState.PLAYING || state === YT.PlayerState.PAUSED) {
+              setPlayerError('');
+            }
             if (state !== YT.PlayerState.PLAYING && state !== YT.PlayerState.PAUSED) {
               return;
             }
@@ -114,9 +133,13 @@ export function usePlayerSync(containerId) {
       if (data.videoId && data.videoId !== videoIdRef.current) {
         videoIdRef.current = data.videoId;
         setVideoId(data.videoId);
-        player.cueVideoById(data.videoId);
-      }
-      if (data.videoId) {
+        setPlayerError('');
+        if (data.status === 'playing') {
+          player.loadVideoById(data.videoId, data.currentTime || 0);
+        } else {
+          player.cueVideoById(data.videoId, data.currentTime || 0);
+        }
+      } else if (data.videoId) {
         const localTime = player.getCurrentTime() || 0;
         if (Math.abs(localTime - (data.currentTime || 0)) > SYNC_THRESHOLD) {
           player.seekTo(data.currentTime || 0, true);
@@ -157,5 +180,5 @@ export function usePlayerSync(containerId) {
     });
   };
 
-  return { ready, videoId, loadVideo };
+  return { ready, videoId, loadVideo, playerError };
 }

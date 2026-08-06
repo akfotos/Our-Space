@@ -99,7 +99,7 @@ function Player() {
     () => ref(rtdb, coupleId ? `playerState/${coupleId}` : 'playerState'),
     [coupleId]
   );
-  const { ready } = usePlayerSync('youtube-player');
+  const { ready, playerError } = usePlayerSync('youtube-player');
   const [input, setInput] = useState('');
   const [playerState, setPlayerState] = useState(null);
   const [error, setError] = useState('');
@@ -198,7 +198,18 @@ function Player() {
       );
     }
 
-    if (activeType === 'youtube') return null;
+    if (activeType === 'youtube') {
+      if (playerError && playerState?.videoId) {
+        return (
+          <UnsupportedCard
+            title="YouTube"
+            url={`https://www.youtube.com/watch?v=${playerState.videoId}`}
+            note={playerError}
+          />
+        );
+      }
+      return null;
+    }
 
     if (activeType === 'direct') {
       return <DirectVideoSync url={playerState.url} />;
@@ -345,7 +356,7 @@ function Player() {
       >
         <div
           id="youtube-player"
-          className={`absolute inset-0 ${activeType === 'youtube' ? '' : 'invisible'}`}
+          className={`absolute inset-0 ${activeType === 'youtube' && !playerError ? '' : 'invisible'}`}
         />
         {renderPlayer()}
 
