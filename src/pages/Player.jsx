@@ -1,17 +1,79 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ref, onValue, set, serverTimestamp } from 'firebase/database';
 import { rtdb } from '../firebaseConfig';
 import { useAuth } from '../contexts/AuthContext';
 import { useCouple } from '../contexts/CoupleContext';
+import { usePresence } from '../contexts/PresenceContext';
 import { usePlayerSync } from '../hooks/usePlayerSync';
 import { parseVideoSource } from '../utils/videoSource';
 import DirectVideoSync from '../components/DirectVideoSync';
-import { Play, ExternalLink, AlertCircle, Film } from 'lucide-react';
+import {
+  Play,
+  MonitorPlay,
+  Link2,
+  ExternalLink,
+  AlertCircle,
+  Film,
+  History,
+  Trash2,
+  Clock,
+} from 'lucide-react';
+
+const MAX_HISTORY = 8;
+const HISTORY_KEY = 'our-space-watch-history';
+
+function loadHistory(coupleId) {
+  if (typeof window === 'undefined') return [];
+  try {
+    const key = `${HISTORY_KEY}-${coupleId || 'solo'}`;
+    return JSON.parse(localStorage.getItem(key) || '[]');
+  } catch {
+    return [];
+  }
+}
+
+function saveHistory(coupleId, history) {
+  if (typeof window === 'undefined') return;
+  try {
+    const key = `${HISTORY_KEY}-${coupleId || 'solo'}`;
+    localStorage.setItem(key, JSON.stringify(history.slice(0, MAX_HISTORY)));
+  } catch {}
+}
+
+function platformIcon(type) {
+  switch (type) {
+    case 'youtube':
+      return <MonitorPlay size={18} />;
+    case 'direct':
+      return <Film size={18} />;
+    default:
+      return <Link2 size={18} />;
+  }
+}
+
+function platformLabel(type) {
+  switch (type) {
+    case 'youtube':
+      return 'YouTube';
+    case 'direct':
+      return 'Direct video';
+    case 'embed':
+      return 'Embedded video';
+    case 'netflix':
+      return 'Netflix';
+    case 'prime':
+      return 'Prime Video';
+    case 'disney':
+      return 'Disney+';
+    default:
+      return 'Video';
+  }
+}
 
 function UnsupportedCard({ title, url, note }) {
   return (
     <div className="absolute inset-0 flex flex-col items-center justify-center bg-rose-50/90 p-6 text-center animate-fade-in-up">
-      <Film size={48} className="text-rose-600 mb-3" />
+      <MonitorPlay size={48} className="text-rose-600 mb-3" />
       <h3 className="text-xl font-bold text-slate-700 mb-2">{title}</h3>
       <p className="text-sm text-slate-600 max-w-md mb-4">{note}</p>
       {url && (
@@ -31,70 +93,118 @@ function UnsupportedCard({ title, url, note }) {
 
 function Player() {
   const { user } = useAuth();
-  const { coupleId } = useCouple();
-  const { ready, loadVideo } = usePlayerSync('youtube-player');
+  const { coupleId, partner } = useCouple();
+  const presence = usePresence();
+  const stateRef = useMemo(
+    () => ref(rtdb, coupleId ? `playerState/${coupleId}` : 'playerState'),
+    [coupleId]
+  );
+  const { ready } = usePlayerSync('youtube-player');
   const [input, setInput] = useState('');
   const [playerState, setPlayerState] = useState(null);
   const [error, setError] = useState('');
-  const stateRef = useRef(ref(rtdb, coupleId ? `playerState/${coupleId}` : 'playerState'));
+  const [history, setHistory] = useState(() => loadHistory(coupleId));
+  const [isLoading, setIsLoading] = useState(false);
+  const [detectedType, setDetectedType] = useState(null);
 
   useEffect(() => {
-    stateRef.current = ref(rtdb, coupleId ? `playerState/${coupleId}` : 'playerState');
-  }, [coupleId]);
-
-  useEffect(() => {
-    const unsub = onValue(stateRef.current, (snap) => {
+    const unsub = onValue(stateRef, (snap) => {
       setPlayerState(snap.exists() ? snap.val() : null);
     });
     return unsub;
-  }, [coupleId]);
+  }, [stateRef]);
 
-  const handleLoad = (e) => {
-    e.preventDefault();
-    setError('');
-    const source = parseVideoSource(input);
-    if (!source) {
-      setError('Could not recognize that video link. Try a YouTube, Vimeo, Dailymotion, Twitch, or direct video URL.');
-      return;
-    }
+  useEffect(() => {
+    const source = parseVideoSource(input.trim());
+    setDetectedType(source?.type || null);
+  }, [input]);
 
-    if (source.type === 'youtube') {
-      loadVideo(input);
-      setInput('');
-      return;
-    }
-
-    set(stateRef.current, {
-      type: source.type,
-      url: source.url,
-      status: 'paused',
-      currentTime: 0,
-      updatedBy: user?.uid || '',
-      updatedAt: serverTimestamp(),
+  const addToHistory = (url, type) => {
+    setHistory((prev) => {
+      const next = [{ url, type, at: Date.now() }, ...prev.filter((h) => h.url !== url)];
+      saveHistory(coupleId, next);
+      return next.slice(0, MAX_HISTORY);
     });
-    setInput('');
   };
+
+  const clearHistory = () => {
+    saveHistory(coupleId, []);
+    setHistory([]);
+  };
+
+  const handleLoad = async (e, urlOverride) => {
+    if (e?.preventDefault) e.preventDefault();
+    const url = (typeof urlOverride === 'string' ? urlOverride : input).trim();
+    if (!url) return;
+
+    setError('');
+    setIsLoading(true);
+    const source = parseVideoSource(url);
+
+    if (!source) {
+      setError(
+        'Could not recognize that video link. Try a YouTube, Vimeo, Dailymotion, Twitch, Netflix, or direct video URL.'
+      );
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      if (source.type === 'youtube') {
+        await set(stateRef, {
+          type: 'youtube',
+          videoId: source.id,
+          status: 'paused',
+          currentTime: 0,
+          updatedBy: user?.uid || '',
+          updatedAt: serverTimestamp(),
+        });
+      } else {
+        await set(stateRef, {
+          type: source.type,
+          url: source.url,
+          status: 'paused',
+          currentTime: 0,
+          updatedBy: user?.uid || '',
+          updatedAt: serverTimestamp(),
+        });
+      }
+      addToHistory(url, source.type);
+      setInput('');
+      setDetectedType(null);
+    } catch (err) {
+      setError('Failed to load video. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const activeType = playerState?.type || null;
+  const partnerOnline = partner?.uid ? !!presence[partner.uid]?.online : false;
+
+  const loaderName = useMemo(() => {
+    if (!playerState?.updatedBy) return '';
+    if (playerState.updatedBy === user?.uid) return 'You';
+    return partner?.name || 'Partner';
+  }, [playerState?.updatedBy, user?.uid, partner?.name]);
 
   const renderPlayer = () => {
     if (!playerState) {
       return (
-        <div className="absolute inset-0 flex items-center justify-center text-slate-500 text-sm">
-          Paste a link above and click Load to watch together.
+        <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-400">
+          <MonitorPlay size={48} className="mb-3 opacity-50" />
+          <p className="text-sm">Paste a link above and click Load to watch together.</p>
         </div>
       );
     }
 
-    const type = playerState.type;
+    if (activeType === 'youtube') return null;
 
-    if (type === 'youtube') {
-      return null;
-    }
-
-    if (type === 'direct') {
+    if (activeType === 'direct') {
       return <DirectVideoSync url={playerState.url} />;
     }
 
-    if (type === 'embed') {
+    if (activeType === 'embed') {
       return (
         <iframe
           src={playerState.url}
@@ -105,7 +215,7 @@ function Player() {
       );
     }
 
-    if (type === 'netflix') {
+    if (activeType === 'netflix') {
       return (
         <UnsupportedCard
           title="Netflix"
@@ -115,7 +225,7 @@ function Player() {
       );
     }
 
-    if (type === 'prime') {
+    if (activeType === 'prime') {
       return (
         <UnsupportedCard
           title="Prime Video"
@@ -125,7 +235,7 @@ function Player() {
       );
     }
 
-    if (type === 'disney') {
+    if (activeType === 'disney') {
       return (
         <UnsupportedCard
           title="Disney+"
@@ -136,57 +246,159 @@ function Player() {
     }
 
     return (
-      <div className="absolute inset-0 flex items-center justify-center text-slate-500 text-sm">
+      <div className="absolute inset-0 flex items-center justify-center text-slate-400 text-sm">
         Unsupported player type.
       </div>
     );
   };
 
-  const title = playerState?.type
-    ? playerState.type.charAt(0).toUpperCase() + playerState.type.slice(1)
-    : 'Watch Together';
-
   return (
-    <div className="max-w-4xl mx-auto space-y-4">
-      <h2 className="text-2xl font-bold text-slate-700">{title}</h2>
-      <form onSubmit={handleLoad} className="flex gap-2">
-        <input
-          type="text"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="Paste YouTube, Vimeo, Twitch, Netflix, or any video URL"
-          className="flex-1 px-4 py-2 rounded-xl border border-rose-100 focus:outline-none focus:ring-2 focus:ring-rose-300 bg-rose-50/50"
-        />
-        <button
-          type="submit"
-          disabled={!input.trim()}
-          className="flex items-center gap-2 px-5 py-2 bg-rose-600 text-white rounded-xl hover:bg-rose-700 disabled:opacity-50 transition"
-        >
-          <Play size={18} />
-          Load
-        </button>
-      </form>
-
-      {error && (
-        <div className="flex items-center gap-2 text-sm text-red-600 bg-red-50 px-4 py-2 rounded-xl">
-          <AlertCircle size={16} />
-          {error}
+    <div className="max-w-5xl mx-auto space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+          <h2 className="text-2xl font-bold text-slate-700">Watch Together</h2>
+          <p className="text-sm text-slate-500">
+            Share a link and enjoy a movie night in perfect sync.
+          </p>
         </div>
-      )}
+        <div
+          className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium w-fit ${
+            partnerOnline
+              ? 'bg-emerald-50 text-emerald-700'
+              : 'bg-slate-100 text-slate-500'
+          }`}
+        >
+          <span
+            className={`w-2 h-2 rounded-full ${
+              partnerOnline ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'
+            }`}
+          />
+          {partnerOnline
+            ? 'Partner online'
+            : partner?.name
+            ? `${partner.name} is offline`
+            : 'Partner offline'}
+        </div>
+      </div>
+
+      <div className="bg-white/80 backdrop-blur rounded-2xl border border-rose-100 p-4 shadow-sm space-y-3">
+        <form onSubmit={handleLoad} className="flex gap-2">
+          <div className="relative flex-1">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+              {detectedType ? platformIcon(detectedType) : <Link2 size={18} />}
+            </span>
+            <input
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Paste YouTube, Vimeo, Twitch, Netflix, or any video URL"
+              className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-rose-100 focus:outline-none focus:ring-2 focus:ring-rose-300 bg-rose-50/50 text-sm"
+            />
+          </div>
+          <button
+            type="submit"
+            disabled={!input.trim() || isLoading}
+            className="flex items-center gap-2 px-5 py-2.5 bg-rose-600 text-white rounded-xl hover:bg-rose-700 disabled:opacity-50 transition text-sm font-medium"
+          >
+            <Play size={16} />
+            {isLoading ? 'Loading…' : 'Load'}
+          </button>
+        </form>
+
+        {error && (
+          <div className="flex items-center gap-2 text-sm text-red-600 bg-red-50 px-3 py-2 rounded-xl">
+            <AlertCircle size={16} />
+            {error}
+          </div>
+        )}
+
+        {history.length > 0 && (
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs font-medium text-slate-400 flex items-center gap-1">
+              <History size={14} /> Recent
+            </span>
+            {history.map((h) => (
+              <button
+                key={h.url}
+                onClick={() => handleLoad({ preventDefault: () => {} }, h.url)}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-rose-50 text-rose-700 text-xs font-medium hover:bg-rose-100 transition"
+                title={h.url}
+              >
+                {platformIcon(h.type)}
+                <span className="max-w-[12rem] truncate">{h.url}</span>
+              </button>
+            ))}
+            <button
+              onClick={clearHistory}
+              className="p-1 rounded-lg text-slate-400 hover:bg-rose-50 hover:text-rose-600"
+              title="Clear history"
+            >
+              <Trash2 size={14} />
+            </button>
+          </div>
+        )}
+      </div>
 
       <div
-        className="relative w-full bg-black rounded-2xl overflow-hidden shadow-lg"
+        className="relative w-full bg-black rounded-2xl overflow-hidden shadow-lg ring-1 ring-rose-100"
         style={{ aspectRatio: '16/9' }}
       >
         <div
           id="youtube-player"
-          className={`absolute inset-0 ${playerState?.type === 'youtube' ? '' : 'invisible'}`}
+          className={`absolute inset-0 ${activeType === 'youtube' ? '' : 'invisible'}`}
         />
         {renderPlayer()}
+
+        <div className="absolute top-3 right-3 flex items-center gap-2">
+          {activeType === 'youtube' && !ready && (
+            <span className="px-2.5 py-1 rounded-full bg-black/60 text-white text-xs backdrop-blur">
+              Loading player…
+            </span>
+          )}
+          {activeType && (
+            <span className="px-2.5 py-1 rounded-full bg-black/60 text-white text-xs backdrop-blur flex items-center gap-1.5">
+              <Clock size={12} />
+              {playerState?.status === 'playing' ? 'Playing' : 'Paused'}
+            </span>
+          )}
+        </div>
       </div>
 
-      {!ready && playerState?.type === 'youtube' && (
-        <p className="text-sm text-slate-500 text-center">Loading YouTube player…</p>
+      {activeType && (
+        <div className="bg-white/80 backdrop-blur rounded-2xl border border-rose-100 p-4 shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-rose-50 text-rose-600 rounded-xl">{platformIcon(activeType)}</div>
+            <div>
+              <p className="text-sm font-semibold text-slate-700">{platformLabel(activeType)}</p>
+              <p className="text-xs text-slate-500">
+                {loaderName ? `Loaded by ${loaderName}` : 'Ready to watch'}
+                {playerState?.currentTime > 0 && ` · ${Math.floor(playerState.currentTime)}s`}
+              </p>
+            </div>
+          </div>
+          {activeType === 'youtube' && playerState?.videoId && (
+            <a
+              href={`https://www.youtube.com/watch?v=${playerState.videoId}`}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-100 text-slate-700 text-sm font-medium hover:bg-slate-200 transition"
+            >
+              <ExternalLink size={14} />
+              Open on YouTube
+            </a>
+          )}
+          {activeType !== 'youtube' && activeType !== 'direct' && playerState?.url && (
+            <a
+              href={playerState.url}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-100 text-slate-700 text-sm font-medium hover:bg-slate-200 transition"
+            >
+              <ExternalLink size={14} />
+              Open original
+            </a>
+          )}
+        </div>
       )}
     </div>
   );
