@@ -17,6 +17,7 @@ function MissYouButton() {
         Tap to send a heartbeat ping and let them know you&apos;re thinking of them.
       </p>
       <button
+        type="button"
         onClick={sendMissYou}
         className="group relative px-8 py-4 bg-rose-600 hover:bg-rose-700 text-white rounded-full font-bold text-lg shadow-lg hover:shadow-rose-500/40 transition-all hover:scale-105 active:scale-95"
       >

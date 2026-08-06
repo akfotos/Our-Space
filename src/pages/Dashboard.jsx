@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import { Sparkles } from 'lucide-react';
 import { useSettings } from '../contexts/SettingsContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -30,17 +30,21 @@ function Dashboard() {
 
   const status = (uid) => presence[uid] || { online: false };
 
+  const locationUnsubsRef = useRef([]);
+
   useEffect(() => {
+    locationUnsubsRef.current.forEach((u) => u());
+    locationUnsubsRef.current = [];
     const validMembers = members.filter((m) => m.uid);
     if (!validMembers.length) return;
-    const unsubs = validMembers.map((m) =>
+    locationUnsubsRef.current = validMembers.map((m) =>
       onSnapshot(doc(db, 'userLocations', m.uid), (snap) => {
         if (snap.exists()) {
           setLocations((prev) => ({ ...prev, [m.uid]: snap.data() }));
         }
       })
     );
-    return () => unsubs.forEach((u) => u());
+    return () => locationUnsubsRef.current.forEach((u) => u());
   }, [members]);
 
   useEffect(() => {

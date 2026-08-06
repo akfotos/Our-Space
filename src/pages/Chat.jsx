@@ -220,7 +220,7 @@ function Chat() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto h-[calc(100vh-7rem)] flex flex-col rounded-[2rem] overflow-hidden bg-white/60 backdrop-blur-2xl border border-white/30 shadow-2xl animate-fade-in-up relative">
+    <div className="max-w-3xl mx-auto h-[calc(100dvh-7rem)] flex flex-col rounded-[2rem] overflow-hidden bg-white/60 backdrop-blur-2xl border border-white/30 shadow-2xl animate-fade-in-up relative">
       <div className="p-4 bg-white/40 backdrop-blur-md border-b border-white/20 flex items-center justify-between z-10">
         <div className="flex items-center gap-3">
           <div className="relative">
@@ -243,6 +243,7 @@ function Chat() {
           </div>
         </div>
         <button
+          type="button"
           onClick={sendMissYou}
           className="flex items-center gap-1.5 text-sm px-4 py-2 rounded-full bg-rose-100/60 text-rose-700 hover:bg-rose-200/80 hover:scale-105 transition shadow-sm backdrop-blur-sm"
         >
@@ -271,7 +272,7 @@ function Chat() {
                 minute: '2-digit',
               })
             : '';
-          const showAvatar = !isMe && (idx === 0 || messages[idx - 1].uid !== msg.uid);
+          const showAvatar = !isMe && (idx === 0 || messages[idx - 1]?.uid !== msg.uid);
           const status = isMe ? messageStatus(msg) : null;
           return (
             <div

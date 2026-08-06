@@ -46,7 +46,7 @@ function DailyCheckIn() {
       window.removeEventListener('focus', updateDate);
       document.removeEventListener('visibilitychange', updateDate);
     };
-  }, [todayId]);
+  }, []);
 
   useEffect(() => {
     if (!docRef) {

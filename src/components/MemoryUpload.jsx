@@ -24,8 +24,9 @@ function MemoryUpload({ onUpload }) {
       className={'bg-white rounded-2xl shadow-sm border border-rose-100 p-5 space-y-3'}
     >
       <div>
-        <label className={'block text-sm font-medium text-slate-700 mb-1'}>Photo</label>
+        <label htmlFor="memory-photo" className={'block text-sm font-medium text-slate-700 mb-1'}>Photo</label>
         <input
+          id="memory-photo"
           ref={inputRef}
           type={'file'}
           accept={'image/*'}
@@ -34,8 +35,9 @@ function MemoryUpload({ onUpload }) {
         />
       </div>
       <div>
-        <label className={'block text-sm font-medium text-slate-700 mb-1'}>Caption</label>
+        <label htmlFor="memory-caption" className={'block text-sm font-medium text-slate-700 mb-1'}>Caption</label>
         <input
+          id="memory-caption"
           type={'text'}
           value={caption}
           onChange={(e) => setCaption(e.target.value)}
