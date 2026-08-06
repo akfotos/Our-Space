@@ -87,9 +87,7 @@ function Player() {
     const type = playerState.type;
 
     if (type === 'youtube') {
-      return (
-        <div id="youtube-player" className="absolute inset-0" />
-      );
+      return null;
     }
 
     if (type === 'direct') {
@@ -180,6 +178,10 @@ function Player() {
         className="relative w-full bg-black rounded-2xl overflow-hidden shadow-lg"
         style={{ aspectRatio: '16/9' }}
       >
+        <div
+          id="youtube-player"
+          className={`absolute inset-0 ${playerState?.type === 'youtube' ? '' : 'invisible'}`}
+        />
         {renderPlayer()}
       </div>
 

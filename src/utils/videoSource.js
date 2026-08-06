@@ -24,8 +24,8 @@ export function parseVideoSource(input) {
       if (parts[0] === 'embed' || parts[0] === 'v') {
         return { type: 'youtube', id: parts[1]?.slice(0, 11) };
       }
-      if (parts[1] && lower.startsWith('https://www.youtube.com/shorts/')) {
-        return { type: 'youtube', id: parts[1]?.slice(0, 11) };
+      if (parts[0] === 'shorts' && parts[1]) {
+        return { type: 'youtube', id: parts[1].slice(0, 11) };
       }
     }
   } catch {
