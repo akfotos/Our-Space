@@ -1,13 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ref, onValue, set, serverTimestamp } from 'firebase/database';
 import { rtdb } from '../firebaseConfig';
 import { useAuth } from '../contexts/AuthContext';
+import { useCouple } from '../contexts/CoupleContext';
 import { usePlayerSync } from '../hooks/usePlayerSync';
 import { parseVideoSource } from '../utils/videoSource';
 import DirectVideoSync from '../components/DirectVideoSync';
 import { Play, ExternalLink, AlertCircle, Film } from 'lucide-react';
-
-const stateRef = ref(rtdb, 'playerState');
 
 function UnsupportedCard({ title, url, note }) {
   return (
@@ -32,17 +31,23 @@ function UnsupportedCard({ title, url, note }) {
 
 function Player() {
   const { user } = useAuth();
+  const { coupleId } = useCouple();
   const { ready, loadVideo } = usePlayerSync('youtube-player');
   const [input, setInput] = useState('');
   const [playerState, setPlayerState] = useState(null);
   const [error, setError] = useState('');
+  const stateRef = useRef(ref(rtdb, coupleId ? `playerState/${coupleId}` : 'playerState'));
 
   useEffect(() => {
-    const unsub = onValue(stateRef, (snap) => {
+    stateRef.current = ref(rtdb, coupleId ? `playerState/${coupleId}` : 'playerState');
+  }, [coupleId]);
+
+  useEffect(() => {
+    const unsub = onValue(stateRef.current, (snap) => {
       setPlayerState(snap.exists() ? snap.val() : null);
     });
     return unsub;
-  }, []);
+  }, [coupleId]);
 
   const handleLoad = (e) => {
     e.preventDefault();
@@ -59,7 +64,7 @@ function Player() {
       return;
     }
 
-    set(stateRef, {
+    set(stateRef.current, {
       type: source.type,
       url: source.url,
       status: 'paused',

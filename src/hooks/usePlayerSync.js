@@ -134,7 +134,7 @@ export function usePlayerSync(containerId) {
       }, 400);
     });
     return unsub;
-  }, [ready]);
+  }, [ready, coupleId]);
 
   const loadVideo = (input) => {
     const id = extractVideoId(input);

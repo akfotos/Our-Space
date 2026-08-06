@@ -2,20 +2,26 @@ import { useEffect, useRef } from 'react';
 import { ref, onValue, set, serverTimestamp } from 'firebase/database';
 import { rtdb } from '../firebaseConfig';
 import { useAuth } from '../contexts/AuthContext';
+import { useCouple } from '../contexts/CoupleContext';
 
 const SYNC_THRESHOLD = 2;
 
 function DirectVideoSync({ url }) {
   const { user } = useAuth();
+  const { coupleId } = useCouple();
   const videoRef = useRef(null);
   const localUpdateRef = useRef(false);
   const syncGuardRef = useRef(false);
   const urlRef = useRef(url);
-  const stateRef = useRef(ref(rtdb, 'playerState'));
+  const stateRef = useRef(ref(rtdb, coupleId ? `playerState/${coupleId}` : 'playerState'));
 
   useEffect(() => {
     urlRef.current = url;
   }, [url]);
+
+  useEffect(() => {
+    stateRef.current = ref(rtdb, coupleId ? `playerState/${coupleId}` : 'playerState');
+  }, [coupleId]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -98,7 +104,7 @@ function DirectVideoSync({ url }) {
       video.removeEventListener('timeupdate', handleTimeUpdate);
       clearTimeout(timeUpdateTimeout);
     };
-  }, [user]);
+  }, [user, coupleId]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -124,7 +130,7 @@ function DirectVideoSync({ url }) {
       }, 400);
     });
     return unsub;
-  }, [url]);
+  }, [url, coupleId]);
 
   return (
     <video
