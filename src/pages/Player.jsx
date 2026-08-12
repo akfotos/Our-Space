@@ -119,7 +119,7 @@ function Player() {
       await set(stateRef, {
         type: 'youtube',
         videoId: source.id,
-        status: 'paused',
+        status: 'playing',
         currentTime: 0,
         updatedBy: user?.uid || '',
         updatedAt: serverTimestamp(),
