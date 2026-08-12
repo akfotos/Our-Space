@@ -16,6 +16,8 @@ import {
   Trash2,
   Clock,
   Megaphone,
+  Clapperboard,
+  Sparkles,
 } from 'lucide-react';
 
 const MAX_HISTORY = 8;
@@ -41,8 +43,10 @@ function saveHistory(coupleId, history) {
 
 function UnsupportedCard({ title, url, note }) {
   return (
-    <div className="absolute inset-0 flex flex-col items-center justify-center bg-rose-50/90 p-6 text-center animate-fade-in-up">
-      <MonitorPlay size={48} className="text-rose-600 mb-3" />
+    <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-rose-50/95 to-white/95 p-6 text-center animate-fade-in-up">
+      <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-rose-100 text-rose-600 shadow-sm">
+        <MonitorPlay size={32} />
+      </div>
       <h3 className="text-xl font-bold text-slate-700 mb-2">{title}</h3>
       <p className="text-sm text-slate-600 max-w-md mb-4">{note}</p>
       {url && (
@@ -50,7 +54,7 @@ function UnsupportedCard({ title, url, note }) {
           href={url}
           target="_blank"
           rel="noreferrer"
-          className="flex items-center gap-2 px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-medium transition"
+          className="flex items-center gap-2 px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-medium transition hover:scale-105 shadow-lg shadow-rose-500/20"
         >
           <ExternalLink size={16} />
           Open in {title}
@@ -147,9 +151,13 @@ function Player() {
   const renderPlayer = () => {
     if (!hasVideo) {
       return (
-        <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-400">
-          <MonitorPlay size={48} className="mb-3 opacity-50" />
-          <p className="text-sm">Paste a YouTube link above and click Load to watch together.</p>
+        <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-6">
+          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-white/10 text-white/70 backdrop-blur-sm">
+            <Clapperboard size={32} />
+          </div>
+          <p className="text-sm text-white/60 max-w-xs">
+            Paste a YouTube link above and hit Load to start a movie night together.
+          </p>
         </div>
       );
     }
@@ -168,19 +176,25 @@ function Player() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+    <div className="relative max-w-5xl mx-auto space-y-6 pb-10">
+      <div className="pointer-events-none absolute -top-16 -left-16 w-64 h-64 rounded-full bg-rose-300/20 blur-3xl animate-float" />
+      <div className="pointer-events-none absolute top-32 -right-16 w-72 h-72 rounded-full bg-rose-400/20 blur-3xl animate-float [animation-delay:1.5s]" />
+
+      <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 animate-fade-in-up">
         <div>
-          <h2 className="text-2xl font-bold text-slate-700">Watch Together</h2>
-          <p className="text-sm text-slate-500">
+          <div className="inline-flex items-center gap-2">
+            <h2 className="text-2xl sm:text-3xl font-black text-slate-800">Watch Together</h2>
+            <Sparkles size={20} className="text-rose-400 animate-float [animation-delay:0.5s]" />
+          </div>
+          <p className="text-sm text-slate-500 mt-0.5">
             Share a YouTube link and enjoy a movie night in perfect sync.
           </p>
         </div>
         <div
-          className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium w-fit ${
+          className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-sm font-semibold w-fit backdrop-blur-sm border transition ${
             partnerOnline
-              ? 'bg-emerald-50 text-emerald-700'
-              : 'bg-slate-100 text-slate-500'
+              ? 'bg-emerald-50/80 text-emerald-700 border-emerald-200/60'
+              : 'bg-white/50 text-slate-500 border-white/40'
           }`}
         >
           <span
@@ -196,10 +210,10 @@ function Player() {
         </div>
       </div>
 
-      <div className="bg-white/80 backdrop-blur rounded-2xl border border-rose-100 p-4 shadow-sm space-y-3">
+      <div className="relative overflow-hidden bg-gradient-to-br from-white/80 to-white/40 backdrop-blur-xl border border-white/40 rounded-3xl p-5 shadow-xl space-y-3 animate-fade-in-up [animation-delay:0.05s]">
         <form onSubmit={handleLoad} className="flex gap-2">
           <div className="relative flex-1">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-rose-400">
               {detected ? <MonitorPlay size={18} /> : <Link2 size={18} />}
             </span>
             <input
@@ -207,47 +221,47 @@ function Player() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Paste a YouTube link (youtube.com or youtu.be)"
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-rose-100 focus:outline-none focus:ring-2 focus:ring-rose-300 bg-rose-50/50 text-sm"
+              className="w-full pl-10 pr-4 py-3 rounded-2xl border border-white/40 focus:outline-none focus:ring-2 focus:ring-rose-300 bg-white/50 placeholder-slate-400 text-sm transition"
             />
           </div>
           <button
             type="submit"
             disabled={!input.trim() || isLoading}
-            className="flex items-center gap-2 px-5 py-2.5 bg-rose-600 text-white rounded-xl hover:bg-rose-700 disabled:opacity-50 transition text-sm font-medium"
+            className="flex items-center gap-2 px-5 py-3 bg-rose-600 text-white rounded-2xl hover:bg-rose-700 disabled:opacity-50 transition hover:scale-105 shadow-lg shadow-rose-500/25 text-sm font-semibold"
           >
-            <Play size={16} />
+            <Play size={16} className="fill-white" />
             {isLoading ? 'Loading…' : 'Load'}
           </button>
         </form>
 
         {error && (
-          <div className="flex items-center gap-2 text-sm text-red-600 bg-red-50 px-3 py-2 rounded-xl">
-            <AlertCircle size={16} />
+          <div className="flex items-center gap-2 text-sm text-red-600 bg-red-50/80 backdrop-blur-sm px-3.5 py-2.5 rounded-xl border border-red-100 animate-pop-in">
+            <AlertCircle size={16} className="shrink-0" />
             {error}
           </div>
         )}
 
         {history.length > 0 && (
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs font-medium text-slate-400 flex items-center gap-1">
-              <History size={14} /> Recent
+          <div className="flex flex-wrap items-center gap-2 pt-1">
+            <span className="text-xs font-bold uppercase tracking-wider text-rose-400/80 flex items-center gap-1">
+              <History size={13} /> Recent
             </span>
             {history.map((h) => (
               <button
                 key={h.url}
                 type="button"
                 onClick={() => handleLoad({ preventDefault: () => {} }, h.url)}
-                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-rose-50 text-rose-700 text-xs font-medium hover:bg-rose-100 transition"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/60 border border-white/40 text-rose-700 text-xs font-medium hover:bg-white/90 hover:scale-105 transition shadow-sm"
                 title={h.url}
               >
-                <MonitorPlay size={18} />
-                <span className="max-w-[12rem] truncate">{h.url}</span>
+                <MonitorPlay size={14} />
+                <span className="max-w-[10rem] truncate">{h.url}</span>
               </button>
             ))}
             <button
               type="button"
               onClick={clearHistory}
-              className="p-1 rounded-lg text-slate-400 hover:bg-rose-50 hover:text-rose-600"
+              className="p-1.5 rounded-full text-slate-400 hover:bg-white/60 hover:text-rose-600 transition"
               title="Clear history"
             >
               <Trash2 size={14} />
@@ -256,54 +270,56 @@ function Player() {
         )}
       </div>
 
-      <div
-        className="relative w-full bg-black rounded-2xl overflow-hidden shadow-lg ring-1 ring-rose-100"
-        style={{ aspectRatio: '16/9' }}
-      >
-        {/*
-          The YouTube IFrame API replaces the #youtube-player div below with
-          a raw <iframe> and does not carry over any CSS classes from it, so
-          positioning/visibility must live on this stable wrapper instead —
-          otherwise the iframe can end up unstyled with a collapsed height
-          (video invisible, audio still playing).
-        */}
-        <div className={`absolute inset-0 ${hasVideo && !playerError ? '' : 'invisible'}`}>
-          <div id="youtube-player" className="w-full h-full" />
-        </div>
-        {renderPlayer()}
+      <div className="relative rounded-[2rem] p-[3px] bg-gradient-to-br from-rose-300 via-rose-400 to-rose-300 shadow-2xl shadow-rose-500/10 animate-fade-in-up [animation-delay:0.1s]">
+        <div
+          className="relative w-full bg-slate-950 rounded-[1.75rem] overflow-hidden"
+          style={{ aspectRatio: '16/9' }}
+        >
+          {/*
+            The YouTube IFrame API replaces the #youtube-player div below with
+            a raw <iframe> and does not carry over any CSS classes from it, so
+            positioning/visibility must live on this stable wrapper instead —
+            otherwise the iframe can end up unstyled with a collapsed height
+            (video invisible, audio still playing).
+          */}
+          <div className={`absolute inset-0 ${hasVideo && !playerError ? '' : 'invisible'}`}>
+            <div id="youtube-player" className="w-full h-full" />
+          </div>
+          {renderPlayer()}
 
-        <div className="absolute top-3 right-3 flex items-center gap-2">
-          {hasVideo && !ready && (
-            <span className="px-2.5 py-1 rounded-full bg-black/60 text-white text-xs backdrop-blur">
-              Loading player…
-            </span>
-          )}
-          {hasVideo && ready && adLikely && !playerError && (
-            <span
-              className="px-2.5 py-1 rounded-full bg-amber-500/80 text-white text-xs backdrop-blur flex items-center gap-1.5"
-              title="YouTube ads can't be blocked in the embedded player — this should only last a few seconds."
-            >
-              <Megaphone size={12} />
-              Ad playing…
-            </span>
-          )}
-          {hasVideo && (
-            <span className="px-2.5 py-1 rounded-full bg-black/60 text-white text-xs backdrop-blur flex items-center gap-1.5">
-              <Clock size={12} />
-              {playerState?.status === 'playing' ? 'Playing' : 'Paused'}
-            </span>
-          )}
+          <div className="absolute top-3 right-3 flex items-center gap-2">
+            {hasVideo && !ready && (
+              <span className="px-2.5 py-1 rounded-full bg-black/60 text-white text-xs backdrop-blur">
+                Loading player…
+              </span>
+            )}
+            {hasVideo && ready && adLikely && !playerError && (
+              <span
+                className="px-2.5 py-1 rounded-full bg-amber-500/85 text-white text-xs backdrop-blur flex items-center gap-1.5 animate-pop-in"
+                title="YouTube ads can't be blocked in the embedded player — this should only last a few seconds."
+              >
+                <Megaphone size={12} />
+                Ad playing…
+              </span>
+            )}
+            {hasVideo && (
+              <span className="px-2.5 py-1 rounded-full bg-black/60 text-white text-xs backdrop-blur flex items-center gap-1.5">
+                <Clock size={12} />
+                {playerState?.status === 'playing' ? 'Playing' : 'Paused'}
+              </span>
+            )}
+          </div>
         </div>
       </div>
 
       {hasVideo && (
-        <div className="bg-white/80 backdrop-blur rounded-2xl border border-rose-100 p-4 shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div className="relative overflow-hidden bg-gradient-to-br from-white/80 to-white/40 backdrop-blur-xl border border-white/40 rounded-3xl p-5 shadow-xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 animate-fade-in-up [animation-delay:0.15s]">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-rose-50 text-rose-600 rounded-xl">
-              <MonitorPlay size={18} />
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-rose-100 text-rose-600 shadow-sm">
+              <MonitorPlay size={20} />
             </div>
             <div>
-              <p className="text-sm font-semibold text-slate-700">YouTube</p>
+              <p className="text-sm font-bold text-slate-700">YouTube</p>
               <p className="text-xs text-slate-500">
                 {loaderName ? `Loaded by ${loaderName}` : 'Ready to watch'}
                 {playerState?.currentTime > 0 && ` · ${Math.floor(playerState.currentTime)}s`}
@@ -315,7 +331,7 @@ function Player() {
               href={`https://www.youtube.com/watch?v=${playerState.videoId}`}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-100 text-slate-700 text-sm font-medium hover:bg-slate-200 transition"
+              className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-white/60 border border-white/40 text-slate-700 text-sm font-medium hover:bg-white/90 hover:scale-105 transition shadow-sm"
             >
               <ExternalLink size={14} />
               Open on YouTube
