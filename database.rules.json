@@ -1,37 +1,36 @@
 ﻿{
   "rules": {
+    "userCouples": {
+      "$uid": {
+        ".read": "auth != null && auth.uid == $uid",
+        ".write": "auth != null && auth.uid == $uid"
+      }
+    },
     "chat": {
       "$coupleId": {
-        ".read": "auth != null",
-        ".write": "auth != null",
+        ".read": "auth != null && root.child('userCouples').child(auth.uid).val() == $coupleId",
+        ".write": "auth != null && root.child('userCouples').child(auth.uid).val() == $coupleId",
         "messages": {
-          ".read": "auth != null",
-          ".write": "auth != null",
           ".indexOn": ["timestamp"]
         },
         "typing": {
-          ".read": "auth != null",
           "$uid": {
-            ".write": "auth != null && auth.uid == $uid"
+            ".write": "auth != null && auth.uid == $uid && root.child('userCouples').child(auth.uid).val() == $coupleId"
           }
-        },
-        "missYou": {
-          ".read": "auth != null",
-          ".write": "auth != null"
         }
       }
     },
     "playerState": {
       "$coupleId": {
-        ".read": "auth != null",
-        ".write": "auth != null"
+        ".read": "auth != null && root.child('userCouples').child(auth.uid).val() == $coupleId",
+        ".write": "auth != null && root.child('userCouples').child(auth.uid).val() == $coupleId"
       }
     },
     "presence": {
       "$coupleId": {
-        ".read": "auth != null",
+        ".read": "auth != null && root.child('userCouples').child(auth.uid).val() == $coupleId",
         "$uid": {
-          ".write": "auth != null && auth.uid == $uid",
+          ".write": "auth != null && auth.uid == $uid && root.child('userCouples').child(auth.uid).val() == $coupleId",
           ".validate": "newData.hasChildren(['online', 'lastSeen', 'name'])"
         }
       }

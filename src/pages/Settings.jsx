@@ -69,7 +69,7 @@ function Card({ icon: Icon, title, children }) {
 function Settings() {
   const { settings, setSetting } = useSettings();
   const { user, signOut } = useAuth();
-  const { couple, coupleId, members, myProfile, partner, updateMemberName } = useCouple();
+  const { couple, coupleId, members, myProfile, partner, updateMemberName, clearUserCoupleMapping } = useCouple();
   const navigate = useNavigate();
   const [faceError, setFaceError] = useState('');
   const [copied, setCopied] = useState(false);
@@ -125,7 +125,8 @@ function Settings() {
       } else {
         await updateDoc(doc(db, 'couples', couple.id), { members: updatedMembers });
       }
-      await updateDoc(doc(db, 'users', user.uid), { coupleId: null }, { merge: true });
+      await updateDoc(doc(db, 'users', user.uid), { coupleId: null });
+      await clearUserCoupleMapping(user.uid);
       await signOut();
       navigate('/login');
     } catch (err) {

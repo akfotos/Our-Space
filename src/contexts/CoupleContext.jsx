@@ -7,11 +7,25 @@ import {
   onSnapshot,
   serverTimestamp,
 } from 'firebase/firestore';
-import { db } from '../firebaseConfig';
+import { ref, set as rtdbSet, remove as rtdbRemove } from 'firebase/database';
+import { db, rtdb } from '../firebaseConfig';
 import { useAuth } from './AuthContext';
 
 const CoupleContext = createContext(null);
 const ONBOARDING_KEY = 'our-space-onboarding';
+
+// Mirrors the Firestore users/{uid}.coupleId into the Realtime Database so
+// RTDB security rules (which cannot query Firestore) can verify that a user
+// belongs to a couple before granting access to chat/presence/player data.
+function setUserCoupleMapping(uid, coupleId) {
+  if (!uid) return Promise.resolve();
+  return rtdbSet(ref(rtdb, `userCouples/${uid}`), coupleId).catch(() => {});
+}
+
+function clearUserCoupleMapping(uid) {
+  if (!uid) return Promise.resolve();
+  return rtdbRemove(ref(rtdb, `userCouples/${uid}`)).catch(() => {});
+}
 
 function loadOnboarding() {
   if (typeof window === 'undefined') return null;
@@ -79,6 +93,7 @@ export function CoupleProvider({ children }) {
           const coupleSnap = await getDoc(coupleRef);
           if (coupleSnap.exists()) {
             setCouple({ id: coupleSnap.id, ...coupleSnap.data() });
+            setUserCoupleMapping(user.uid, userData.coupleId);
           } else {
             setCouple(null);
           }
@@ -115,6 +130,7 @@ export function CoupleProvider({ children }) {
         createdAt: serverTimestamp(),
       });
       await setDoc(doc(db, 'couples', code, 'settings', 'shared'), { reunionDate: onboarding.reunionDate }, { merge: true });
+      await setUserCoupleMapping(currentUser.uid, code);
 
       if (onboarding.location) {
         await setDoc(doc(db, 'userLocations', currentUser.uid), {
@@ -153,6 +169,7 @@ export function CoupleProvider({ children }) {
         ],
         createdAt: serverTimestamp(),
       });
+      await setUserCoupleMapping(user.uid, code);
       return code;
     } catch (err) {
       setError(err.message || 'Could not create couple.');
@@ -176,6 +193,7 @@ export function CoupleProvider({ children }) {
       const data = snap.data();
       if (data.members?.some((m) => m.uid === user.uid)) {
         await setDoc(doc(db, 'users', user.uid), { coupleId: clean }, { merge: true });
+        await setUserCoupleMapping(user.uid, clean);
         return true;
       }
 
@@ -195,6 +213,7 @@ export function CoupleProvider({ children }) {
 
       await setDoc(doc(db, 'users', user.uid), { coupleId: clean }, { merge: true });
       await updateDoc(coupleRef, { members });
+      await setUserCoupleMapping(user.uid, clean);
       return true;
     } catch (err) {
       setError(err.message || 'Could not join couple.');
@@ -227,6 +246,7 @@ export function CoupleProvider({ children }) {
         createCouple,
         joinCouple,
         updateMemberName,
+        clearUserCoupleMapping,
       }}
     >
       {children}
