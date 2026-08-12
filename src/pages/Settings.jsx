@@ -6,8 +6,6 @@ import {
   Calendar,
   Clock,
   Layout,
-  Lock,
-  Fingerprint,
   Heart,
   Copy,
   Check,
@@ -19,12 +17,6 @@ import { useSettings } from '../contexts/SettingsContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useCouple } from '../contexts/CoupleContext';
 import { useNavigate } from 'react-router-dom';
-import {
-  supportsBiometric,
-  registerCredential,
-  clearCredential,
-  hasCredential,
-} from '../utils/biometric';
 import { doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 import { THEMES, THEME_KEYS } from '../themes';
@@ -71,33 +63,9 @@ function Settings() {
   const { user, signOut } = useAuth();
   const { couple, coupleId, members, myProfile, partner, updateMemberName, clearUserCoupleMapping } = useCouple();
   const navigate = useNavigate();
-  const [faceError, setFaceError] = useState('');
   const [copied, setCopied] = useState(false);
   const [editingName, setEditingName] = useState(false);
   const [tempName, setTempName] = useState(myProfile?.name || '');
-
-  const handleFaceLock = async (enabled) => {
-    setFaceError('');
-    if (enabled) {
-      if (!supportsBiometric()) {
-        setFaceError('Your device/browser does not support face or fingerprint unlock.');
-        return;
-      }
-      if (!user) {
-        setFaceError('You must be signed in to set up face recognition lock.');
-        return;
-      }
-      try {
-        await registerCredential(user);
-        setSetting('faceLock', true);
-      } catch (err) {
-        setFaceError(err.message || 'Could not set up face recognition lock.');
-      }
-    } else {
-      clearCredential();
-      setSetting('faceLock', false);
-    }
-  };
 
   const handleCopyCode = () => {
     if (!couple?.code) return;
@@ -349,21 +317,6 @@ function Settings() {
           checked={settings.showBibleVerse}
           onChange={(v) => setSetting('showBibleVerse', v)}
         />
-      </Card>
-
-      <Card icon={Lock} title="Security">
-        <Toggle
-          label="Face recognition lock"
-          description="Use Face ID, fingerprint or Windows Hello to unlock the app"
-          checked={settings.faceLock && hasCredential()}
-          onChange={handleFaceLock}
-        />
-        {faceError && <p className="text-sm text-red-600">{faceError}</p>}
-        {!supportsBiometric() && (
-          <p className="text-sm text-slate-500">
-            Your device or browser does not support biometric authentication.
-          </p>
-        )}
       </Card>
     </div>
   );

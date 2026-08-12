@@ -18,7 +18,6 @@ const defaults = {
   showCheckIn: true,
   showMissYou: true,
   showBibleVerse: true,
-  faceLock: false,
 };
 
 const SYNCED_KEYS = [

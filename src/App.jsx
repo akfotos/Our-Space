@@ -8,7 +8,6 @@ import PrivateRoute from './components/PrivateRoute';
 import Nav from './components/Nav';
 import BubbleBackground from './components/BubbleBackground';
 import WelcomeScreen from './components/WelcomeScreen';
-import ScreenLock from './components/ScreenLock';
 import Auth from './components/Auth';
 import Dashboard from './pages/Dashboard';
 import Chat from './pages/Chat';
@@ -48,7 +47,6 @@ function AppContent() {
   return (
     <div className="relative min-h-screen flex flex-col">
       <BubbleBackground />
-      <ScreenLock />
       <Nav />
       <main className="relative z-10 flex-1 p-4 sm:p-6">
         <Routes>
