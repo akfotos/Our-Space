@@ -5,6 +5,12 @@ import { useAuth } from '../contexts/AuthContext';
 import { useCouple } from '../contexts/CoupleContext';
 
 const SYNC_THRESHOLD = 2;
+// Minimum content length (seconds) before we trust a duration reading as the
+// "real" video rather than a short pre/mid-roll ad.
+const MIN_CONTENT_DURATION = 90;
+// If the reported duration drops below this fraction of the known content
+// duration, we assume an ad is playing.
+const AD_DURATION_RATIO = 0.5;
 
 let apiReadyPromise = null;
 function getYouTubeAPI() {
@@ -49,12 +55,49 @@ export function usePlayerSync(containerId) {
   const [ready, setReady] = useState(false);
   const [videoId, setVideoId] = useState('');
   const [playerError, setPlayerError] = useState('');
+  const [adLikely, setAdLikely] = useState(false);
   const playerRef = useRef(null);
   const videoIdRef = useRef('');
   const localUpdateRef = useRef(false);
   const syncGuardRef = useRef(false);
   const userRef = useRef(user);
   const stateRef = useRef(ref(rtdb, 'playerState'));
+  const contentDurationRef = useRef(0);
+  const adLikelyRef = useRef(false);
+
+  // No official YouTube IFrame API event exists for ad playback, so this is
+  // a best-effort heuristic: ads report a much shorter duration than the
+  // actual video, so a sudden drop is a reliable-enough signal to surface a
+  // small "ad playing" indicator in the UI.
+  const checkForAd = () => {
+    const player = playerRef.current;
+    if (!player || typeof player.getDuration !== 'function') return;
+    const duration = player.getDuration() || 0;
+    if (duration >= MIN_CONTENT_DURATION) {
+      contentDurationRef.current = duration;
+      if (adLikelyRef.current) {
+        adLikelyRef.current = false;
+        setAdLikely(false);
+      }
+      return;
+    }
+    const isAd =
+      duration > 0 &&
+      contentDurationRef.current >= MIN_CONTENT_DURATION &&
+      duration < contentDurationRef.current * AD_DURATION_RATIO;
+    if (isAd !== adLikelyRef.current) {
+      adLikelyRef.current = isAd;
+      setAdLikely(isAd);
+    }
+  };
+
+  const resetAdDetection = () => {
+    contentDurationRef.current = 0;
+    if (adLikelyRef.current) {
+      adLikelyRef.current = false;
+      setAdLikely(false);
+    }
+  };
 
   useEffect(() => {
     stateRef.current = coupleId ? ref(rtdb, `playerState/${coupleId}`) : ref(rtdb, 'playerState');
@@ -91,6 +134,7 @@ export function usePlayerSync(containerId) {
             setPlayerError(messages[event.data] || 'This video could not be played here.');
           },
           onStateChange: (event) => {
+            checkForAd();
             if (syncGuardRef.current || !playerRef.current) return;
             const state = event.data;
             if (state === YT.PlayerState.PLAYING || state === YT.PlayerState.PAUSED) {
@@ -121,6 +165,14 @@ export function usePlayerSync(containerId) {
     };
   }, [containerId]);
 
+  // Safety net: some ad transitions don't reliably trigger onStateChange,
+  // so poll the reported duration too.
+  useEffect(() => {
+    if (!ready) return;
+    const interval = setInterval(checkForAd, 2000);
+    return () => clearInterval(interval);
+  }, [ready]);
+
   useEffect(() => {
     if (!ready || !playerRef.current) return;
     const unsub = onValue(stateRef.current, (snap) => {
@@ -134,6 +186,7 @@ export function usePlayerSync(containerId) {
         videoIdRef.current = data.videoId;
         setVideoId(data.videoId);
         setPlayerError('');
+        resetAdDetection();
         if (data.status === 'playing') {
           player.loadVideoById(data.videoId, data.currentTime || 0);
         } else {
@@ -164,6 +217,7 @@ export function usePlayerSync(containerId) {
     if (!id || !playerRef.current) return;
     videoIdRef.current = id;
     setVideoId(id);
+    resetAdDetection();
     const player = playerRef.current;
     player.cueVideoById(id);
     player.pauseVideo();
@@ -180,5 +234,5 @@ export function usePlayerSync(containerId) {
     });
   };
 
-  return { ready, videoId, loadVideo, playerError };
+  return { ready, videoId, loadVideo, playerError, adLikely };
 }

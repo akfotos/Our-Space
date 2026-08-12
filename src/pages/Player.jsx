@@ -15,6 +15,7 @@ import {
   History,
   Trash2,
   Clock,
+  Megaphone,
 } from 'lucide-react';
 
 const MAX_HISTORY = 8;
@@ -67,7 +68,7 @@ function Player() {
     () => ref(rtdb, coupleId ? `playerState/${coupleId}` : 'playerState'),
     [coupleId]
   );
-  const { ready, playerError } = usePlayerSync('youtube-player');
+  const { ready, playerError, adLikely } = usePlayerSync('youtube-player');
   const [input, setInput] = useState('');
   const [playerState, setPlayerState] = useState(null);
   const [error, setError] = useState('');
@@ -275,6 +276,15 @@ function Player() {
           {hasVideo && !ready && (
             <span className="px-2.5 py-1 rounded-full bg-black/60 text-white text-xs backdrop-blur">
               Loading player…
+            </span>
+          )}
+          {hasVideo && ready && adLikely && !playerError && (
+            <span
+              className="px-2.5 py-1 rounded-full bg-amber-500/80 text-white text-xs backdrop-blur flex items-center gap-1.5"
+              title="YouTube ads can't be blocked in the embedded player — this should only last a few seconds."
+            >
+              <Megaphone size={12} />
+              Ad playing…
             </span>
           )}
           {hasVideo && (
