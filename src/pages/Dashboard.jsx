@@ -83,19 +83,18 @@ function Dashboard() {
   const profileB = profiles[1] || {};
 
   return (
-    <div className="relative max-w-6xl mx-auto space-y-8 pb-10 overflow-hidden">
-      {/* decorative glass blobs */}
-      <div className="pointer-events-none absolute -top-20 -left-20 w-72 h-72 rounded-full bg-rose-300/20 blur-3xl animate-float" />
-      <div className="pointer-events-none absolute top-40 -right-20 w-80 h-80 rounded-full bg-rose-400/20 blur-3xl animate-float [animation-delay:1.5s]" />
+    <div className="relative max-w-6xl mx-auto space-y-8 pb-10">
+      <header className="glass-panel relative text-center px-6 py-10 sm:py-12 animate-fade-in-up">
+        <div className="pointer-events-none absolute -top-10 -left-10 w-48 h-48 rounded-full bg-rose-300/25 blur-3xl animate-float" />
+        <div className="pointer-events-none absolute -bottom-10 -right-10 w-56 h-56 rounded-full bg-amber-200/20 blur-3xl animate-float [animation-delay:1.5s]" />
 
-      <header className="relative text-center pt-4 animate-fade-in-up">
-        <div className="inline-flex items-center justify-center gap-3 mb-2">
+        <div className="relative inline-flex items-center justify-center gap-3 mb-2">
           <img
             src={`${import.meta.env.BASE_URL}Logo.png`}
             alt="Our Space"
-            className="h-14 w-auto animate-float rounded-2xl"
+            className="h-14 w-auto animate-float rounded-2xl shadow-lg shadow-rose-500/20"
           />
-          <h1 className="text-5xl sm:text-6xl font-black bg-clip-text text-transparent bg-gradient-to-r from-rose-700 via-rose-500 to-rose-700 drop-shadow-sm">
+          <h1 className="text-5xl sm:text-6xl font-black text-shimmer animate-shimmer drop-shadow-sm">
             Our Space
           </h1>
           <Sparkles
@@ -103,23 +102,27 @@ function Dashboard() {
             className="text-rose-400 animate-float [animation-delay:0.75s]"
           />
         </div>
-        <p className="text-lg sm:text-xl text-slate-600 font-medium italic">
+        <p className="relative text-lg sm:text-xl text-slate-600 font-medium italic">
           Distance makes the heart grow fonder.
         </p>
         {members.length > 0 && (
-          <div className="mt-4 flex flex-wrap items-center justify-center gap-4">
+          <div className="relative mt-5 flex flex-wrap items-center justify-center gap-3">
             {members.filter((m) => m.uid).map((m) => (
-              <OnlineStatus
+              <div
                 key={m.uid}
-                online={status(m.uid).online}
-                lastSeen={status(m.uid).lastSeen}
-                name={m.name}
-              />
+                className="px-3.5 py-1.5 rounded-full bg-white/50 border border-white/40 backdrop-blur-sm shadow-sm"
+              >
+                <OnlineStatus
+                  online={status(m.uid).online}
+                  lastSeen={status(m.uid).lastSeen}
+                  name={m.name}
+                />
+              </div>
             ))}
           </div>
         )}
         {members.filter((m) => m.uid).length === 1 && couple?.code && (
-          <div className="mt-4 mx-auto max-w-sm bg-rose-100/70 backdrop-blur-sm text-rose-800 rounded-2xl px-4 py-3 text-sm font-medium border border-rose-200/50 animate-pop-in">
+          <div className="relative mt-5 mx-auto max-w-sm bg-rose-100/70 backdrop-blur-sm text-rose-800 rounded-2xl px-4 py-3 text-sm font-medium border border-rose-200/50 animate-pop-in">
             Share this code with {members.find((m) => !m.uid)?.name || 'your partner'}:{' '}
             <span className="font-black tracking-widest select-all">{couple.code}</span>
           </div>

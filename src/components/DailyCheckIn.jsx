@@ -93,20 +93,20 @@ function DailyCheckIn() {
   };
 
   if (loading) return (
-    <section className="bg-gradient-to-br from-white/70 to-white/40 backdrop-blur-xl border border-white/30 rounded-3xl p-6 shadow-xl">
-      <p className="text-sm text-slate-500">Loading check-in…</p>
+    <section className="glass-card p-6">
+      <p className="relative text-sm text-slate-500">Loading check-in…</p>
     </section>
   );
 
   const myMood = user ? today?.[user.uid]?.mood : null;
 
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-white/70 to-white/40 backdrop-blur-xl border border-white/30 rounded-3xl p-6 shadow-xl transition hover:scale-[1.02]">
-      <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-rose-700/70 mb-1">
+    <section className="glass-card p-6">
+      <h2 className="relative text-sm font-bold uppercase tracking-[0.2em] text-rose-700/70 mb-1">
         Daily Check-in
       </h2>
-      <p className="mb-4 text-sm text-slate-500">How are you feeling today?</p>
-      <div className="flex flex-wrap gap-2">
+      <p className="relative mb-4 text-sm text-slate-500">How are you feeling today?</p>
+      <div className="relative flex flex-wrap gap-2">
         {MOODS.map(({ key, label, icon: Icon, color }) => {
           const active = myMood === key;
           return (
@@ -117,7 +117,7 @@ function DailyCheckIn() {
               disabled={Boolean(savingMood)}
               className={`flex items-center gap-2 px-3.5 py-2.5 rounded-2xl text-sm font-semibold transition-all hover:scale-105 disabled:cursor-wait disabled:opacity-60 ${
                 active
-                  ? 'bg-rose-600/90 backdrop-blur-sm text-white shadow-md'
+                  ? 'bg-gradient-to-br from-rose-500 to-rose-600 backdrop-blur-sm text-white shadow-md shadow-rose-500/25'
                   : 'bg-white/40 border border-white/30 hover:bg-white/60 text-slate-600'
               }`}
             >
@@ -127,9 +127,9 @@ function DailyCheckIn() {
           );
         })}
       </div>
-      {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
+      {error && <p className="relative mt-3 text-sm text-red-600">{error}</p>}
       {today && Object.keys(today).some((k) => k !== 'updatedAt') && (
-        <div className="mt-5 pt-4 border-t border-white/30 space-y-2">
+        <div className="relative mt-5 pt-4 border-t border-white/30 space-y-2">
           {Object.entries(today)
             .filter(([key]) => key !== 'updatedAt')
             .map(([uid, data]) => (

@@ -32,15 +32,15 @@ function DistanceCard({ profileA = USERS.A, profileB = USERS.B }) {
 
   if (!hasCoords) {
     return (
-      <section className="relative overflow-hidden bg-gradient-to-br from-white/70 to-white/40 backdrop-blur-xl border border-white/30 rounded-3xl p-6 shadow-xl transition hover:scale-[1.02]">
+      <section className="glass-card p-6">
         <Plane
           size={56}
           className="absolute -top-2 -right-2 text-rose-200/40 rotate-12"
         />
-        <h2 className="text-sm font-bold uppercase tracking-widest text-rose-700/70 mb-2">
+        <h2 className="relative text-sm font-bold uppercase tracking-widest text-rose-700/70 mb-2">
           Distance Between Us
         </h2>
-        <p className="text-sm text-slate-500">
+        <p className="relative text-sm text-slate-500">
           Waiting for both of you to share a location. Allow location access to see the distance between you.
         </p>
       </section>
@@ -48,26 +48,26 @@ function DistanceCard({ profileA = USERS.A, profileB = USERS.B }) {
   }
 
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-white/70 to-white/40 backdrop-blur-xl border border-white/30 rounded-3xl p-6 shadow-xl transition hover:scale-[1.02]">
+    <section className="glass-card p-6">
       <Plane
         size={56}
         className="absolute -top-2 -right-2 text-rose-200/40 rotate-12"
       />
-      <h2 className="text-sm font-bold uppercase tracking-widest text-rose-700/70 mb-2">
+      <h2 className="relative text-sm font-bold uppercase tracking-widest text-rose-700/70 mb-2">
         Distance Between Us
       </h2>
-      <div className="flex items-center gap-2 text-slate-600 mb-4">
+      <div className="relative flex items-center gap-2 text-slate-600 mb-4">
         <MapPin size={16} className="text-rose-600" />
         <span className="text-sm font-medium">{profileA.location}</span>
         <span className="text-slate-400">⟷</span>
         <MapPin size={16} className="text-rose-600" />
         <span className="text-sm font-medium">{profileB.location}</span>
       </div>
-      <p className="text-4xl sm:text-5xl font-black text-slate-800 tabular-nums">
+      <p className="relative text-4xl sm:text-5xl font-black text-slate-800 tabular-nums">
         {Math.round(km).toLocaleString()}
         <span className="text-lg font-semibold text-slate-500 ml-1">km</span>
       </p>
-      <p className="text-sm text-slate-500 mt-1">
+      <p className="relative text-sm text-slate-500 mt-1">
         That&apos;s about {Math.round(mi).toLocaleString()} miles apart
       </p>
     </section>

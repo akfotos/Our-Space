@@ -58,28 +58,28 @@ function Affirmations() {
   };
 
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-white/70 to-white/40 backdrop-blur-xl border border-white/30 rounded-3xl p-6 shadow-xl transition hover:scale-[1.01] animate-fade-in-up [animation-delay:0.5s]">
+    <section className="glass-card p-6 animate-fade-in-up [animation-delay:0.5s]">
       <Heart
         size={56}
         className="absolute -top-3 -right-3 text-rose-200/30 rotate-12"
       />
-      <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-rose-700/70 mb-4 flex items-center gap-2">
+      <h2 className="relative text-sm font-bold uppercase tracking-[0.2em] text-rose-700/70 mb-4 flex items-center gap-2">
         <Heart size={18} className="fill-rose-600 text-rose-600" />
         Love Affirmations
       </h2>
 
-      <form onSubmit={handleSubmit} className="mb-5">
+      <form onSubmit={handleSubmit} className="relative mb-5">
         <textarea
           value={text}
           onChange={(e) => setText(e.target.value)}
           rows={3}
           placeholder="Write a longer message about how much you love each other…"
-          className="w-full rounded-2xl border border-white/30 bg-white/40 p-4 text-slate-800 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-rose-300 resize-none"
+          className="w-full rounded-2xl border border-white/30 bg-white/40 p-4 text-slate-800 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-rose-300 resize-none transition focus:bg-white/60"
         />
         <button
           type="submit"
           disabled={!text.trim()}
-          className="mt-3 flex items-center gap-2 px-5 py-2.5 bg-rose-600 hover:bg-rose-700 disabled:opacity-50 text-white rounded-xl font-medium transition hover:scale-105 shadow-lg"
+          className="mt-3 flex items-center gap-2 px-5 py-2.5 bg-gradient-to-br from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 disabled:opacity-50 text-white rounded-xl font-medium transition hover:scale-105 shadow-lg shadow-rose-500/25"
         >
           <Send size={16} />
           Send Affirmation
@@ -87,17 +87,17 @@ function Affirmations() {
       </form>
 
       {loading ? (
-        <p className="text-sm text-slate-500">Loading affirmations…</p>
+        <p className="relative text-sm text-slate-500">Loading affirmations…</p>
       ) : items.length === 0 ? (
-        <p className="text-sm text-slate-500 italic">
+        <p className="relative text-sm text-slate-500 italic">
           No affirmations yet. Write the first one!
         </p>
       ) : (
-        <div className="space-y-3 max-h-80 overflow-y-auto scrollbar-thin pr-1">
+        <div className="relative space-y-3 max-h-80 overflow-y-auto scrollbar-thin pr-1">
           {items.map((item) => (
             <div
               key={item.id}
-              className="bg-white/40 backdrop-blur-sm rounded-2xl p-4 border border-white/30 shadow-sm"
+              className="bg-white/40 backdrop-blur-sm rounded-2xl p-4 border border-white/30 shadow-sm transition hover:bg-white/60 hover:shadow-md"
             >
               <p className="text-slate-700 leading-relaxed italic">
                 &ldquo;{item.text}&rdquo;

@@ -56,8 +56,8 @@ function TimeWeather({ profile }) {
   }, [profile.lat, profile.lon]);
 
   return (
-    <div className="group relative overflow-hidden bg-gradient-to-br from-white/70 to-white/40 backdrop-blur-xl border border-white/30 rounded-3xl p-6 shadow-xl transition hover:scale-[1.02] hover:shadow-2xl flex items-center justify-between">
-      <div>
+    <div className="group glass-card p-6 flex items-center justify-between">
+      <div className="relative">
         <p className="text-sm font-bold text-rose-700/80 flex items-center gap-1.5">
           <MapPin size={14} className="text-rose-600" />
           {profile.location}
@@ -68,7 +68,7 @@ function TimeWeather({ profile }) {
         </p>
       </div>
       {weather && (
-        <div className="flex flex-col items-end gap-2">
+        <div className="relative flex flex-col items-end gap-2">
           <div className="transform group-hover:scale-110 transition">{weatherIcon(weather.weathercode)}</div>
           <span className="text-2xl font-black text-slate-700">
             {Math.round(weather.temperature)}°C

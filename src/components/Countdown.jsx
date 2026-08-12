@@ -28,24 +28,24 @@ function Countdown() {
   const units = settings.showSeconds ? allUnits : allUnits.slice(0, 3);
 
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-white/80 to-white/40 backdrop-blur-2xl border border-white/40 rounded-3xl p-8 shadow-2xl text-center">
+    <section className="glass-card p-8 text-center">
       <Hourglass
         size={80}
         className="absolute -top-4 -right-4 text-rose-200/30 rotate-12"
       />
-      <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-rose-700/70 mb-2">
+      <h2 className="relative text-sm font-bold uppercase tracking-[0.2em] text-rose-700/70 mb-2">
         Next Reunion
       </h2>
-      <p className="text-slate-500 text-sm mb-6">
+      <p className="relative text-slate-500 text-sm mb-6">
         {diff > 0
           ? 'Counting down to the day we meet again'
           : 'The reunion date has passed. Update it in src/config.js.'}
       </p>
-      <div className="flex justify-center gap-3 sm:gap-5 flex-wrap">
+      <div className="relative flex justify-center gap-3 sm:gap-5 flex-wrap">
         {units.map(({ label, value }) => (
           <div
             key={label}
-            className="flex flex-col items-center min-w-[4.5rem] sm:min-w-[6rem] bg-white/40 backdrop-blur-md rounded-2xl p-3 sm:p-4 border border-white/30 shadow-sm"
+            className="flex flex-col items-center min-w-[4.5rem] sm:min-w-[6rem] bg-white/40 backdrop-blur-md rounded-2xl p-3 sm:p-4 border border-white/30 shadow-sm transition hover:scale-105 hover:bg-white/60"
           >
             <span className="text-4xl sm:text-6xl font-black bg-clip-text text-transparent bg-gradient-to-b from-rose-600 to-rose-800 tabular-nums">
               {String(value).padStart(2, '0')}

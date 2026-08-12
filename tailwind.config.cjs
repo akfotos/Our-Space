@@ -87,6 +87,15 @@ module.exports = {
           '95%': { opacity: '0.4' },
           '100%': { transform: 'translateY(-120vh) translateX(-15px)', opacity: '0' },
         },
+        auroraDrift: {
+          '0%, 100%': { transform: 'translate(0, 0) scale(1)' },
+          '33%': { transform: 'translate(5%, -8%) scale(1.12)' },
+          '66%': { transform: 'translate(-4%, 6%) scale(0.95)' },
+        },
+        shimmer: {
+          '0%': { backgroundPosition: '0% 50%' },
+          '100%': { backgroundPosition: '200% 50%' },
+        },
       },
       animation: {
         'fade-in-up': 'fadeInUp 0.35s ease-out forwards',
@@ -100,6 +109,9 @@ module.exports = {
         'heart-beat': 'heartBeat 1.1s ease-in-out 0.7s infinite',
         'welcome-progress': 'welcomeProgress 1.8s ease-out both',
         'bubble': 'bubble 15s linear infinite',
+        'aurora-drift': 'auroraDrift 20s ease-in-out infinite',
+        'aurora-drift-slow': 'auroraDrift 28s ease-in-out infinite reverse',
+        'shimmer': 'shimmer 3s linear infinite',
       },
     },
   },

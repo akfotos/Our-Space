@@ -18,6 +18,14 @@ function BubbleBackground() {
 
   return (
     <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
+      {/* Large, slow-drifting color auras behind everything for a livelier
+          glass atmosphere — the frosted cards pick up these hues through
+          backdrop-blur. */}
+      <div className="absolute -top-32 -left-24 w-[28rem] h-[28rem] rounded-full bg-rose-300/30 blur-[100px] animate-aurora-drift" />
+      <div className="absolute top-1/3 -right-32 w-[32rem] h-[32rem] rounded-full bg-amber-200/25 blur-[110px] animate-aurora-drift-slow" />
+      <div className="absolute bottom-0 left-1/4 w-[26rem] h-[26rem] rounded-full bg-rose-400/20 blur-[100px] animate-aurora-drift [animation-delay:6s]" />
+      <div className="absolute bottom-1/4 right-1/4 w-72 h-72 rounded-full bg-purple-200/15 blur-[90px] animate-aurora-drift-slow [animation-delay:3s]" />
+
       {bubbles.map((b, i) => (
         <div
           key={i}

@@ -220,180 +220,184 @@ function Chat() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto h-[calc(100dvh-7rem)] flex flex-col rounded-[2rem] overflow-hidden bg-white/60 backdrop-blur-2xl border border-white/30 shadow-2xl animate-fade-in-up relative">
-      <div className="p-4 bg-white/40 backdrop-blur-md border-b border-white/20 flex items-center justify-between z-10">
-        <div className="flex items-center gap-3">
-          <div className="relative">
-            <div className="w-10 h-10 rounded-full bg-rose-100/80 flex items-center justify-center text-rose-700">
-              <Heart size={20} className="fill-rose-600 text-rose-600" />
-            </div>
-            <span
-              className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white ${
-                otherPresence.online ? 'bg-green-500' : 'bg-slate-400'
-              }`}
-            />
-          </div>
-          <div>
-            <h2 className="text-lg font-bold text-slate-800">Our Chat</h2>
-            <OnlineStatus
-              online={otherPresence.online}
-              lastSeen={otherPresence.lastSeen}
-              showName={false}
-            />
-          </div>
-        </div>
-        <button
-          type="button"
-          onClick={sendMissYou}
-          className="flex items-center gap-1.5 text-sm px-4 py-2 rounded-full bg-rose-100/60 text-rose-700 hover:bg-rose-200/80 hover:scale-105 transition shadow-sm backdrop-blur-sm"
-        >
-          <Heart size={16} className="fill-rose-600" /> Miss you
-        </button>
-      </div>
-
-      {missYou && (
-        <div className="absolute top-20 left-1/2 -translate-x-1/2 z-20 bg-rose-100/80 backdrop-blur-md border border-white/30 px-5 py-2 rounded-full shadow-lg text-sm text-rose-700 font-medium animate-pop-in">
-          {missYou.from} sent a {'miss you'} ping!
-        </div>
-      )}
-
-      {chatError && (
-        <div className="mx-5 mt-3 p-3 bg-red-50/90 text-red-600 rounded-lg text-sm text-center">
-          {chatError}
-        </div>
-      )}
-
-      <div className="flex-1 overflow-y-auto p-5 space-y-4 scrollbar-thin relative">
-        {messages.map((msg, idx) => {
-          const isMe = msg.uid === user.uid;
-          const time = msg.timestamp
-            ? new Date(msg.timestamp).toLocaleTimeString([], {
-                hour: '2-digit',
-                minute: '2-digit',
-              })
-            : '';
-          const showAvatar = !isMe && (idx === 0 || messages[idx - 1]?.uid !== msg.uid);
-          const status = isMe ? messageStatus(msg) : null;
-          return (
-            <div
-              key={msg.id}
-              className={`flex items-end gap-2 ${
-                isMe ? 'justify-end' : 'justify-start'
-              } ${isMe ? 'animate-slide-in-right' : 'animate-slide-in-left'}`}
-            >
-              {!isMe && (
-                <div
-                  className={`w-8 h-8 rounded-full bg-rose-100/80 text-rose-700 flex items-center justify-center text-xs font-bold shadow-sm shrink-0 transition ${
-                    showAvatar ? 'opacity-100' : 'opacity-0'
-                  }`}
-                >
-                  {avatarInitial(msg.name)}
+    <div className="max-w-3xl mx-auto h-[calc(100dvh-7rem)] animate-fade-in-up">
+      <div className="relative h-full rounded-[2rem] p-[2px] bg-gradient-to-br from-rose-300 via-white/60 to-rose-300 shadow-2xl shadow-rose-900/10">
+        <div className="relative h-full flex flex-col rounded-[calc(2rem-2px)] overflow-hidden bg-white/60 backdrop-blur-2xl">
+          <div className="relative p-4 bg-white/50 backdrop-blur-md border-b border-white/30 flex items-center justify-between z-10">
+            <div className="flex items-center gap-3">
+              <div className="relative">
+                <div className="w-11 h-11 rounded-full bg-gradient-to-br from-rose-500 to-rose-600 flex items-center justify-center text-white shadow-md shadow-rose-500/30">
+                  <Heart size={20} className="fill-white" />
                 </div>
-              )}
-              <div
-                className={`max-w-[75%] px-4 py-3 rounded-[1.25rem] text-sm shadow-md transition-all duration-200 hover:scale-[1.02] ${
-                  isMe
-                    ? 'bg-rose-600/85 backdrop-blur-sm text-white rounded-br-md'
-                    : 'bg-white/70 backdrop-blur-sm text-slate-800 rounded-bl-md'
-                }`}
-              >
-                {!isMe && (
-                  <p className="text-xs font-semibold text-rose-700 mb-1">{msg.name}</p>
-                )}
-                {isMe && (
-                  <div className="flex justify-end gap-1.5 mb-1 -mt-1 -mr-1">
-                    {canEdit(msg) && (
-                      <button
-                        type="button"
-                        onClick={() => startEdit(msg)}
-                        className="p-1 rounded-full hover:bg-white/20 text-rose-100 hover:text-white transition"
-                        aria-label="Edit message"
-                        title="Edit message"
-                      >
-                        <Pencil size={12} />
-                      </button>
-                    )}
-                    <button
-                      type="button"
-                      onClick={() => handleDelete(msg.id)}
-                      className="p-1 rounded-full hover:bg-white/20 text-rose-100 hover:text-white transition"
-                      aria-label="Delete message"
-                      title="Delete message"
-                    >
-                      <Trash2 size={12} />
-                    </button>
-                  </div>
-                )}
-                {renderContent(msg)}
-                <p
-                  className={`text-[10px] mt-1.5 flex items-center gap-1 ${
-                    isMe ? 'text-rose-100' : 'text-slate-400'
+                <span
+                  className={`absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full border-2 border-white ${
+                    otherPresence.online ? 'bg-green-500 animate-pulse' : 'bg-slate-400'
                   }`}
-                >
-                  {time}
-                  {msg.editedAt && <span className="italic opacity-80">edited</span>}
-                  {isMe && status === 'sent' && <Check size={12} className="opacity-70" />}
-                  {isMe && status === 'delivered' && <CheckCheck size={12} className="opacity-70" />}
-                  {isMe && status === 'read' && <CheckCheck size={12} className="text-blue-300" />}
-                </p>
+                />
+              </div>
+              <div>
+                <h2 className="text-lg font-bold text-slate-800">Our Chat</h2>
+                <OnlineStatus
+                  online={otherPresence.online}
+                  lastSeen={otherPresence.lastSeen}
+                  showName={false}
+                />
               </div>
             </div>
-          );
-        })}
-        <TypingIndicator typing={typing} />
-        <div ref={bottomRef} />
-      </div>
-
-      <div className="p-3 bg-white/50 backdrop-blur-md border-t border-white/20 flex gap-2 items-center relative z-10">
-        <button
-          type="button"
-          onClick={() => setMenuOpen((v) => !v)}
-          className="h-11 w-11 flex items-center justify-center shrink-0 text-slate-500 hover:text-rose-700 hover:bg-white/50 rounded-2xl transition"
-        >
-          {menuOpen ? <X size={22} /> : <Paperclip size={22} />}
-        </button>
-
-        {menuOpen && (
-          <div className="absolute bottom-full left-4 mb-3 bg-white/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/30 p-2 flex gap-2 animate-pop-in">
             <button
               type="button"
-              onClick={handleLink}
-              className="flex flex-col items-center gap-1 p-2.5 rounded-xl hover:bg-rose-50/70 hover:scale-105 transition text-xs text-slate-600 min-w-[4rem]"
+              onClick={sendMissYou}
+              className="flex items-center gap-1.5 text-sm px-4 py-2 rounded-full bg-white/60 border border-white/40 text-rose-700 hover:bg-white/90 hover:scale-105 transition shadow-sm backdrop-blur-sm"
             >
-              <LinkIcon size={20} className="text-rose-600" />
-              Link
+              <Heart size={16} className="fill-rose-600 text-rose-600" /> Miss you
             </button>
           </div>
-        )}
 
-        <form onSubmit={handleSubmit} className="flex-1 flex gap-2 items-center">
-          <input
-            ref={inputRef}
-            type="text"
-            value={editingId ? editText : text}
-            onChange={onChange}
-            onBlur={onBlur}
-            placeholder={editingId ? 'Edit message…' : 'Type a message or add a caption…'}
-            disabled={!!editingId && false}
-            className="flex-1 h-11 px-5 leading-[2.75rem] rounded-2xl border border-white/30 focus:outline-none focus:ring-2 focus:ring-rose-300 bg-white/40 placeholder-slate-500 transition disabled:opacity-50"
-          />
-          {editingId && (
+          {missYou && (
+            <div className="absolute top-20 left-1/2 -translate-x-1/2 z-20 bg-rose-100/90 backdrop-blur-md border border-white/40 px-5 py-2 rounded-full shadow-lg text-sm text-rose-700 font-medium animate-pop-in">
+              {missYou.from} sent a {'miss you'} ping!
+            </div>
+          )}
+
+          {chatError && (
+            <div className="mx-5 mt-3 p-3 bg-red-50/90 text-red-600 rounded-lg text-sm text-center">
+              {chatError}
+            </div>
+          )}
+
+          <div className="flex-1 overflow-y-auto p-5 space-y-4 scrollbar-thin relative">
+            {messages.map((msg, idx) => {
+              const isMe = msg.uid === user.uid;
+              const time = msg.timestamp
+                ? new Date(msg.timestamp).toLocaleTimeString([], {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })
+                : '';
+              const showAvatar = !isMe && (idx === 0 || messages[idx - 1]?.uid !== msg.uid);
+              const status = isMe ? messageStatus(msg) : null;
+              return (
+                <div
+                  key={msg.id}
+                  className={`flex items-end gap-2 ${
+                    isMe ? 'justify-end' : 'justify-start'
+                  } ${isMe ? 'animate-slide-in-right' : 'animate-slide-in-left'}`}
+                >
+                  {!isMe && (
+                    <div
+                      className={`w-8 h-8 rounded-full bg-gradient-to-br from-rose-400 to-rose-500 text-white flex items-center justify-center text-xs font-bold shadow-sm shrink-0 transition ${
+                        showAvatar ? 'opacity-100' : 'opacity-0'
+                      }`}
+                    >
+                      {avatarInitial(msg.name)}
+                    </div>
+                  )}
+                  <div
+                    className={`max-w-[75%] px-4 py-3 rounded-[1.25rem] text-sm shadow-md transition-all duration-200 hover:scale-[1.02] ${
+                      isMe
+                        ? 'bg-gradient-to-br from-rose-500 to-rose-600 text-white rounded-br-md shadow-rose-500/25'
+                        : 'bg-white/75 backdrop-blur-sm border border-white/40 text-slate-800 rounded-bl-md'
+                    }`}
+                  >
+                    {!isMe && (
+                      <p className="text-xs font-semibold text-rose-700 mb-1">{msg.name}</p>
+                    )}
+                    {isMe && (
+                      <div className="flex justify-end gap-1.5 mb-1 -mt-1 -mr-1">
+                        {canEdit(msg) && (
+                          <button
+                            type="button"
+                            onClick={() => startEdit(msg)}
+                            className="p-1 rounded-full hover:bg-white/20 text-rose-100 hover:text-white transition"
+                            aria-label="Edit message"
+                            title="Edit message"
+                          >
+                            <Pencil size={12} />
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => handleDelete(msg.id)}
+                          className="p-1 rounded-full hover:bg-white/20 text-rose-100 hover:text-white transition"
+                          aria-label="Delete message"
+                          title="Delete message"
+                        >
+                          <Trash2 size={12} />
+                        </button>
+                      </div>
+                    )}
+                    {renderContent(msg)}
+                    <p
+                      className={`text-[10px] mt-1.5 flex items-center gap-1 ${
+                        isMe ? 'text-rose-100' : 'text-slate-400'
+                      }`}
+                    >
+                      {time}
+                      {msg.editedAt && <span className="italic opacity-80">edited</span>}
+                      {isMe && status === 'sent' && <Check size={12} className="opacity-70" />}
+                      {isMe && status === 'delivered' && <CheckCheck size={12} className="opacity-70" />}
+                      {isMe && status === 'read' && <CheckCheck size={12} className="text-blue-200" />}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+            <TypingIndicator typing={typing} />
+            <div ref={bottomRef} />
+          </div>
+
+          <div className="relative p-3 bg-white/50 backdrop-blur-md border-t border-white/30 flex gap-2 items-center z-10">
             <button
               type="button"
-              onClick={cancelEdit}
-              className="h-11 w-11 flex items-center justify-center shrink-0 bg-white/60 text-slate-600 rounded-2xl hover:bg-white/80 transition"
+              onClick={() => setMenuOpen((v) => !v)}
+              className="h-11 w-11 flex items-center justify-center shrink-0 text-slate-500 hover:text-rose-700 hover:bg-white/60 rounded-2xl transition"
             >
-              <X size={22} />
+              {menuOpen ? <X size={22} /> : <Paperclip size={22} />}
             </button>
-          )}
-          <button
-            type="submit"
-            disabled={editingId ? !editText.trim() : !text.trim()}
-            className="h-11 w-11 flex items-center justify-center shrink-0 bg-rose-600 text-white rounded-full hover:bg-rose-700 disabled:opacity-50 transition-all hover:scale-105 shadow-lg hover:shadow-rose-500/30"
-          >
-            {editingId ? <Check size={22} /> : <Send size={22} />}
-          </button>
-        </form>
+
+            {menuOpen && (
+              <div className="absolute bottom-full left-4 mb-3 bg-white/90 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/40 p-2 flex gap-2 animate-pop-in">
+                <button
+                  type="button"
+                  onClick={handleLink}
+                  className="flex flex-col items-center gap-1 p-2.5 rounded-xl hover:bg-rose-50/70 hover:scale-105 transition text-xs text-slate-600 min-w-[4rem]"
+                >
+                  <LinkIcon size={20} className="text-rose-600" />
+                  Link
+                </button>
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="flex-1 flex gap-2 items-center">
+              <input
+                ref={inputRef}
+                type="text"
+                value={editingId ? editText : text}
+                onChange={onChange}
+                onBlur={onBlur}
+                placeholder={editingId ? 'Edit message…' : 'Type a message or add a caption…'}
+                disabled={!!editingId && false}
+                className="flex-1 h-11 px-5 leading-[2.75rem] rounded-2xl border border-white/40 focus:outline-none focus:ring-2 focus:ring-rose-300 bg-white/50 placeholder-slate-500 transition focus:bg-white/70 disabled:opacity-50"
+              />
+              {editingId && (
+                <button
+                  type="button"
+                  onClick={cancelEdit}
+                  className="h-11 w-11 flex items-center justify-center shrink-0 bg-white/60 text-slate-600 rounded-2xl hover:bg-white/80 transition"
+                >
+                  <X size={22} />
+                </button>
+              )}
+              <button
+                type="submit"
+                disabled={editingId ? !editText.trim() : !text.trim()}
+                className="h-11 w-11 flex items-center justify-center shrink-0 bg-gradient-to-br from-rose-500 to-rose-600 text-white rounded-full hover:from-rose-600 hover:to-rose-700 disabled:opacity-50 transition-all hover:scale-105 shadow-lg shadow-rose-500/30"
+              >
+                {editingId ? <Check size={22} /> : <Send size={22} />}
+              </button>
+            </form>
+          </div>
+        </div>
       </div>
     </div>
   );

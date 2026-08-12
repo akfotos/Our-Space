@@ -20,3 +20,83 @@
     border-radius: 20px;
   }
 }
+
+@layer components {
+  /* Shared glassmorphism card used across the Dashboard, Chat, and beyond.
+     Adds a soft diagonal "sheen" highlight and a gentle hover lift so the
+     glass feels dynamic rather than flat. */
+  .glass-card {
+    position: relative;
+    overflow: hidden;
+    border-radius: 1.5rem;
+    border: 1px solid rgb(255 255 255 / 0.4);
+    background: linear-gradient(
+      135deg,
+      rgb(255 255 255 / 0.75),
+      rgb(255 255 255 / 0.35)
+    );
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    box-shadow: 0 20px 45px -15px rgb(var(--color-rose-900) / 0.12);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  .glass-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      120deg,
+      rgb(255 255 255 / 0.5) 0%,
+      transparent 35%,
+      transparent 65%,
+      rgb(255 255 255 / 0.15) 100%
+    );
+    mix-blend-mode: overlay;
+    pointer-events: none;
+  }
+  .glass-card:hover {
+    box-shadow: 0 28px 55px -15px rgb(var(--color-rose-900) / 0.18);
+    transform: translateY(-2px);
+  }
+  .glass-panel {
+    position: relative;
+    overflow: hidden;
+    border-radius: 2rem;
+    border: 1px solid rgb(255 255 255 / 0.45);
+    background: linear-gradient(
+      135deg,
+      rgb(255 255 255 / 0.65),
+      rgb(255 255 255 / 0.25)
+    );
+    backdrop-filter: blur(28px);
+    -webkit-backdrop-filter: blur(28px);
+    box-shadow: 0 25px 60px -20px rgb(var(--color-rose-900) / 0.15);
+  }
+  .glass-panel::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      120deg,
+      rgb(255 255 255 / 0.45) 0%,
+      transparent 40%,
+      transparent 60%,
+      rgb(255 255 255 / 0.12) 100%
+    );
+    mix-blend-mode: overlay;
+    pointer-events: none;
+  }
+  .text-shimmer {
+    background-size: 200% auto;
+    background-image: linear-gradient(
+      90deg,
+      rgb(var(--color-rose-700)) 0%,
+      rgb(var(--color-rose-400)) 30%,
+      rgb(var(--color-rose-700)) 60%,
+      rgb(var(--color-rose-500)) 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+}

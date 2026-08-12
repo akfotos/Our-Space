@@ -26,15 +26,15 @@ function quoteForToday() {
 
 function DailyQuote() {
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-white/70 to-white/40 backdrop-blur-xl border border-white/30 rounded-3xl p-6 shadow-xl transition hover:scale-[1.02]">
+    <section className="glass-card p-6">
       <Quote
         size={48}
         className="absolute -top-2 -right-2 text-rose-200/40 rotate-12"
       />
-      <h2 className="text-sm font-bold uppercase tracking-widest text-rose-700/70 mb-3">
+      <h2 className="relative text-sm font-bold uppercase tracking-widest text-rose-700/70 mb-3">
         Today&apos;s Love Note
       </h2>
-      <p className="text-lg sm:text-xl font-medium text-slate-700 leading-relaxed italic">
+      <p className="relative text-lg sm:text-xl font-medium text-slate-700 leading-relaxed italic">
         &ldquo;{quoteForToday()}&rdquo;
       </p>
     </section>
