@@ -355,7 +355,7 @@ function BibleQuote() {
                   <button
                     type="button"
                     onClick={() => deleteVerse(item.id)}
-                    className="p-1 rounded-full hover:bg-red-50 text-slate-400 hover:text-red-600 transition"
+                    className="p-1 rounded-full hover:bg-red-500/10 text-slate-400 hover:text-red-600 transition"
                     aria-label="Delete verse"
                     title="Delete verse"
                   >

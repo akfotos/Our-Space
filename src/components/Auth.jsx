@@ -245,12 +245,12 @@ function Auth() {
         <h1 className="text-3xl font-bold text-rose-600 mb-2">Our Space</h1>
         <p className="text-slate-600 mb-6">A private place for you and your partner.</p>
         {error && (
-          <div className="mb-4 p-3 bg-red-50 text-red-600 rounded-lg text-sm">
+          <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 text-red-600 rounded-lg text-sm">
             {error}
           </div>
         )}
         {passwordError && (
-          <div className="mb-4 p-3 bg-red-50 text-red-600 rounded-lg text-sm">
+          <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 text-red-600 rounded-lg text-sm">
             {passwordError}
           </div>
         )}

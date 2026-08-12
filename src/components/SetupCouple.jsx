@@ -39,7 +39,7 @@ function SetupCouple() {
         </p>
 
         {createdCode && (
-          <div className="mb-5 p-4 bg-green-50 rounded-2xl text-green-700">
+          <div className="mb-5 p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl text-emerald-600">
             <p className="text-sm font-medium">Share this code with your partner</p>
             <p className="text-2xl font-black tracking-widest">{createdCode}</p>
           </div>

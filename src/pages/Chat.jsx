@@ -221,7 +221,7 @@ function Chat() {
 
   return (
     <div className="max-w-3xl mx-auto h-[calc(100dvh-7rem)] animate-fade-in-up">
-      <div className="relative h-full rounded-[2rem] p-[2px] bg-gradient-to-br from-rose-300 via-white/60 to-rose-300 shadow-2xl shadow-rose-900/10">
+      <div className="relative h-full rounded-[2rem] p-[2px] bg-gradient-to-br from-rose-300 via-white/60 to-rose-300 shadow-2xl shadow-black/10">
         <div className="relative h-full flex flex-col rounded-[calc(2rem-2px)] overflow-hidden bg-white/60 backdrop-blur-2xl">
           <div className="relative p-4 bg-white/50 backdrop-blur-md border-b border-white/30 flex items-center justify-between z-10">
             <div className="flex items-center gap-3">
@@ -260,7 +260,7 @@ function Chat() {
           )}
 
           {chatError && (
-            <div className="mx-5 mt-3 p-3 bg-red-50/90 text-red-600 rounded-lg text-sm text-center">
+            <div className="mx-5 mt-3 p-3 bg-red-500/10 border border-red-500/20 text-red-600 rounded-lg text-sm text-center">
               {chatError}
             </div>
           )}

@@ -193,7 +193,7 @@ function Player() {
         <div
           className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-sm font-semibold w-fit backdrop-blur-sm border transition ${
             partnerOnline
-              ? 'bg-emerald-50/80 text-emerald-700 border-emerald-200/60'
+              ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/25'
               : 'bg-white/50 text-slate-500 border-white/40'
           }`}
         >
@@ -235,7 +235,7 @@ function Player() {
         </form>
 
         {error && (
-          <div className="flex items-center gap-2 text-sm text-red-600 bg-red-50/80 backdrop-blur-sm px-3.5 py-2.5 rounded-xl border border-red-100 animate-pop-in">
+          <div className="flex items-center gap-2 text-sm text-red-600 bg-red-500/10 backdrop-blur-sm px-3.5 py-2.5 rounded-xl border border-red-500/20 animate-pop-in">
             <AlertCircle size={16} className="shrink-0" />
             {error}
           </div>

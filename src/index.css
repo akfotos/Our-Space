@@ -25,19 +25,26 @@
   /* Shared glassmorphism card used across the Dashboard, Chat, and beyond.
      Adds a soft diagonal "sheen" highlight and a gentle hover lift so the
      glass feels dynamic rather than flat. */
+  /* NOTE: these use the theme's --color-white variable (not literal white)
+     so cards render as frosted *dark* glass in dark mode instead of a
+     bright white block sitting on a dark page. Shadows use a fixed neutral
+     black rather than --color-rose-900, because that token is intentionally
+     inverted to a light color in dark palettes (for text contrast) and
+     would otherwise produce a glowing light "shadow" instead of a soft
+     dark one. */
   .glass-card {
     position: relative;
     overflow: hidden;
     border-radius: 1.5rem;
-    border: 1px solid rgb(255 255 255 / 0.4);
+    border: 1px solid rgb(var(--color-white) / 0.4);
     background: linear-gradient(
       135deg,
-      rgb(255 255 255 / 0.75),
-      rgb(255 255 255 / 0.35)
+      rgb(var(--color-white) / 0.75),
+      rgb(var(--color-white) / 0.35)
     );
     backdrop-filter: blur(24px);
     -webkit-backdrop-filter: blur(24px);
-    box-shadow: 0 20px 45px -15px rgb(var(--color-rose-900) / 0.12);
+    box-shadow: 0 20px 45px -15px rgb(0 0 0 / 0.18);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
   }
   .glass-card::before {
@@ -46,31 +53,31 @@
     inset: 0;
     background: linear-gradient(
       120deg,
-      rgb(255 255 255 / 0.5) 0%,
+      rgb(var(--color-white) / 0.5) 0%,
       transparent 35%,
       transparent 65%,
-      rgb(255 255 255 / 0.15) 100%
+      rgb(var(--color-white) / 0.15) 100%
     );
     mix-blend-mode: overlay;
     pointer-events: none;
   }
   .glass-card:hover {
-    box-shadow: 0 28px 55px -15px rgb(var(--color-rose-900) / 0.18);
+    box-shadow: 0 28px 55px -15px rgb(0 0 0 / 0.26);
     transform: translateY(-2px);
   }
   .glass-panel {
     position: relative;
     overflow: hidden;
     border-radius: 2rem;
-    border: 1px solid rgb(255 255 255 / 0.45);
+    border: 1px solid rgb(var(--color-white) / 0.45);
     background: linear-gradient(
       135deg,
-      rgb(255 255 255 / 0.65),
-      rgb(255 255 255 / 0.25)
+      rgb(var(--color-white) / 0.65),
+      rgb(var(--color-white) / 0.25)
     );
     backdrop-filter: blur(28px);
     -webkit-backdrop-filter: blur(28px);
-    box-shadow: 0 25px 60px -20px rgb(var(--color-rose-900) / 0.15);
+    box-shadow: 0 25px 60px -20px rgb(0 0 0 / 0.22);
   }
   .glass-panel::before {
     content: '';
@@ -78,10 +85,10 @@
     inset: 0;
     background: linear-gradient(
       120deg,
-      rgb(255 255 255 / 0.45) 0%,
+      rgb(var(--color-white) / 0.45) 0%,
       transparent 40%,
       transparent 60%,
-      rgb(255 255 255 / 0.12) 100%
+      rgb(var(--color-white) / 0.12) 100%
     );
     mix-blend-mode: overlay;
     pointer-events: none;
