@@ -259,10 +259,16 @@ function Player() {
         className="relative w-full bg-black rounded-2xl overflow-hidden shadow-lg ring-1 ring-rose-100"
         style={{ aspectRatio: '16/9' }}
       >
-        <div
-          id="youtube-player"
-          className={`absolute inset-0 ${hasVideo && !playerError ? '' : 'invisible'}`}
-        />
+        {/*
+          The YouTube IFrame API replaces the #youtube-player div below with
+          a raw <iframe> and does not carry over any CSS classes from it, so
+          positioning/visibility must live on this stable wrapper instead —
+          otherwise the iframe can end up unstyled with a collapsed height
+          (video invisible, audio still playing).
+        */}
+        <div className={`absolute inset-0 ${hasVideo && !playerError ? '' : 'invisible'}`}>
+          <div id="youtube-player" className="w-full h-full" />
+        </div>
         {renderPlayer()}
 
         <div className="absolute top-3 right-3 flex items-center gap-2">
