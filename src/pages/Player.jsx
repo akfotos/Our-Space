@@ -8,6 +8,9 @@ import { usePlayerSync } from '../hooks/usePlayerSync';
 import { parseVideoSource } from '../utils/videoSource';
 import {
   Play,
+  Pause,
+  RotateCcw,
+  RotateCw,
   MonitorPlay,
   Link2,
   ExternalLink,
@@ -19,6 +22,8 @@ import {
   Clapperboard,
   Sparkles,
 } from 'lucide-react';
+
+const SEEK_SECONDS = 10;
 
 const MAX_HISTORY = 8;
 const HISTORY_KEY = 'our-space-watch-history';
@@ -72,7 +77,7 @@ function Player() {
     () => ref(rtdb, coupleId ? `playerState/${coupleId}` : 'playerState'),
     [coupleId]
   );
-  const { ready, playerError, adLikely } = usePlayerSync('youtube-player');
+  const { ready, playerError, adLikely, play, pause, seekBy } = usePlayerSync('youtube-player');
   const [input, setInput] = useState('');
   const [playerState, setPlayerState] = useState(null);
   const [error, setError] = useState('');
@@ -141,6 +146,19 @@ function Player() {
 
   const hasVideo = playerState?.type === 'youtube';
   const partnerOnline = partner?.uid ? !!presence[partner.uid]?.online : false;
+  const isPlaying = playerState?.status === 'playing';
+  const controlsDisabled = !hasVideo || !ready || !!playerError;
+
+  const togglePlay = () => {
+    if (controlsDisabled) return;
+    if (isPlaying) pause();
+    else play();
+  };
+
+  const handleSeek = (delta) => {
+    if (controlsDisabled || adLikely) return;
+    seekBy(delta);
+  };
 
   const loaderName = useMemo(() => {
     if (!playerState?.updatedBy) return '';
@@ -309,6 +327,38 @@ function Player() {
               </span>
             )}
           </div>
+
+          {hasVideo && !playerError && (
+            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => handleSeek(-SEEK_SECONDS)}
+                disabled={controlsDisabled || adLikely}
+                title={adLikely ? "Can't seek during an ad" : `Back ${SEEK_SECONDS}s`}
+                className="h-10 w-10 flex items-center justify-center rounded-full bg-black/60 text-white backdrop-blur hover:bg-black/80 disabled:opacity-40 disabled:cursor-not-allowed transition hover:scale-105"
+              >
+                <RotateCcw size={18} />
+              </button>
+              <button
+                type="button"
+                onClick={togglePlay}
+                disabled={controlsDisabled}
+                title={isPlaying ? 'Pause' : 'Play'}
+                className="h-12 w-12 flex items-center justify-center rounded-full bg-rose-600 text-white shadow-lg shadow-rose-500/30 hover:bg-rose-700 disabled:opacity-40 disabled:cursor-not-allowed transition hover:scale-105"
+              >
+                {isPlaying ? <Pause size={22} className="fill-white" /> : <Play size={22} className="fill-white" />}
+              </button>
+              <button
+                type="button"
+                onClick={() => handleSeek(SEEK_SECONDS)}
+                disabled={controlsDisabled || adLikely}
+                title={adLikely ? "Can't seek during an ad" : `Forward ${SEEK_SECONDS}s`}
+                className="h-10 w-10 flex items-center justify-center rounded-full bg-black/60 text-white backdrop-blur hover:bg-black/80 disabled:opacity-40 disabled:cursor-not-allowed transition hover:scale-105"
+              >
+                <RotateCw size={18} />
+              </button>
+            </div>
+          )}
         </div>
       </div>
 

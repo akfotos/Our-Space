@@ -212,6 +212,42 @@ export function usePlayerSync(containerId) {
     return unsub;
   }, [ready, coupleId]);
 
+  // Manual transport controls for the "Watch Together" custom control bar.
+  // There is no way to reach YouTube's own in-ad Skip button (it's rendered
+  // by YouTube's ad module inside the cross-origin iframe and isn't exposed
+  // by the IFrame API), so these intentionally only control the underlying
+  // player — callers should disable them while `adLikely` is true.
+  const play = () => {
+    playerRef.current?.playVideo();
+  };
+
+  const pause = () => {
+    playerRef.current?.pauseVideo();
+  };
+
+  const seekBy = (deltaSeconds) => {
+    const player = playerRef.current;
+    if (!player || typeof player.seekTo !== 'function') return;
+    const duration = player.getDuration() || 0;
+    const current = player.getCurrentTime() || 0;
+    let target = current + deltaSeconds;
+    if (target < 0) target = 0;
+    if (duration > 0) target = Math.min(target, Math.max(duration - 1, 0));
+    player.seekTo(target, true);
+    localUpdateRef.current = true;
+    const YT = window.YT;
+    set(stateRef.current, {
+      type: 'youtube',
+      videoId: videoIdRef.current,
+      status: YT && player.getPlayerState() === YT.PlayerState.PLAYING ? 'playing' : 'paused',
+      currentTime: target,
+      updatedBy: userRef.current?.uid || '',
+      updatedAt: serverTimestamp(),
+    }).then(() => {
+      localUpdateRef.current = false;
+    });
+  };
+
   const loadVideo = (input) => {
     const id = extractVideoId(input);
     if (!id || !playerRef.current) return;
@@ -234,5 +270,5 @@ export function usePlayerSync(containerId) {
     });
   };
 
-  return { ready, videoId, loadVideo, playerError, adLikely };
+  return { ready, videoId, loadVideo, playerError, adLikely, play, pause, seekBy };
 }
