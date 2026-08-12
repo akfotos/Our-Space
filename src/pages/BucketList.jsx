@@ -45,6 +45,7 @@ function BucketList() {
               className={'flex items-center gap-3 bg-white rounded-xl border border-rose-100 p-3'}
             >
               <button
+                type="button"
                 onClick={() => toggle(item)}
                 className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition ${
                   item.done ? 'bg-rose-600 border-rose-600' : 'border-slate-300 hover:border-rose-400'
@@ -60,6 +61,7 @@ function BucketList() {
                 {item.title}
               </span>
               <button
+                type="button"
                 onClick={() => remove(item)}
                 className={'text-slate-400 hover:text-red-500 transition'}
                 aria-label={'Delete item'}

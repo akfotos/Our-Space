@@ -7,6 +7,7 @@ import {
   MessageCircle,
   Play,
   List,
+  Images,
   Settings,
   Menu,
   X,
@@ -30,6 +31,7 @@ function Nav() {
     { to: '/chat', label: 'Chat', icon: MessageCircle },
     { to: '/watch', label: 'Watch', icon: Play },
     { to: '/bucket', label: 'Bucket List', icon: List },
+    { to: '/memories', label: 'Memories', icon: Images },
     { to: '/settings', label: 'Settings', icon: Settings },
   ];
 
@@ -47,6 +49,7 @@ function Nav() {
         </Link>
 
         <button
+          type="button"
           className="sm:hidden p-2 rounded-md text-rose-600 hover:bg-rose-50"
           onClick={() => setOpen(!open)}
           aria-label="Toggle menu"
@@ -82,6 +85,7 @@ function Nav() {
             {user.displayName}
           </span>
           <button
+            type="button"
             onClick={handleSignOut}
             className="ml-2 p-2 rounded-lg text-slate-500 hover:bg-rose-50 hover:text-rose-600"
             aria-label="Sign out"
@@ -121,6 +125,7 @@ function Nav() {
           <div className="flex items-center justify-between pt-2 border-t border-rose-100">
             <span className="text-sm text-slate-500">{user.displayName}</span>
             <button
+              type="button"
               onClick={handleSignOut}
               className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-rose-50"
             >

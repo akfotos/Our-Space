@@ -5,15 +5,29 @@ function SetupCouple() {
   const { createCouple, joinCouple, error, loading } = useCouple();
   const [code, setCode] = useState('');
   const [createdCode, setCreatedCode] = useState('');
+  const [creating, setCreating] = useState(false);
+  const [joining, setJoining] = useState(false);
 
   const handleCreate = async () => {
-    const newCode = await createCouple();
-    if (newCode) setCreatedCode(newCode);
+    if (creating || joining) return;
+    setCreating(true);
+    try {
+      const newCode = await createCouple();
+      if (newCode) setCreatedCode(newCode);
+    } finally {
+      setCreating(false);
+    }
   };
 
   const handleJoin = async (e) => {
     e.preventDefault();
-    await joinCouple(code);
+    if (creating || joining) return;
+    setJoining(true);
+    try {
+      await joinCouple(code);
+    } finally {
+      setJoining(false);
+    }
   };
 
   return (
@@ -34,10 +48,10 @@ function SetupCouple() {
         <button
           type="button"
           onClick={handleCreate}
-          disabled={loading}
+          disabled={loading || creating || joining}
           className="w-full py-3 px-4 bg-rose-600 hover:bg-rose-700 disabled:opacity-50 text-white rounded-xl font-semibold transition mb-4"
         >
-          {loading ? 'Creating…' : 'Create a couple code'}
+          {creating ? 'Creating…' : 'Create a couple code'}
         </button>
 
         <div className="relative my-4">
@@ -60,10 +74,10 @@ function SetupCouple() {
           />
           <button
             type="submit"
-            disabled={loading || code.length < 4}
+            disabled={loading || creating || joining || code.length < 4}
             className="w-full py-3 px-4 bg-white/40 hover:bg-white/60 text-slate-700 rounded-xl font-semibold transition"
           >
-            {loading ? 'Joining…' : 'Join couple'}
+            {joining ? 'Joining…' : 'Join couple'}
           </button>
         </form>
 

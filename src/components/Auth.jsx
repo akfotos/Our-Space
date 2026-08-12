@@ -323,6 +323,7 @@ function Auth() {
         </div>
 
         <button
+          type="button"
           onClick={signIn}
           className="w-full py-3 px-4 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl font-medium transition"
         >

@@ -19,6 +19,7 @@ function MemoryCard({ memory, onDelete, canDelete }) {
           <span className={'text-xs text-slate-400'}>{memory.creatorName}</span>
           {canDelete && (
             <button
+              type="button"
               onClick={() => onDelete(memory)}
               className={'text-slate-400 hover:text-red-500 transition'}
               aria-label={'Delete memory'}

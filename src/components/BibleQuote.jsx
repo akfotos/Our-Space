@@ -256,6 +256,7 @@ function BibleQuote() {
         {VERSIONS.map((v) => (
           <button
             key={v.slug}
+            type="button"
             onClick={() => changeVersion(v.slug)}
             className={`px-4 py-1.5 rounded-full text-sm font-semibold transition ${
               version === v.slug
@@ -287,6 +288,7 @@ function BibleQuote() {
         )}
         <div className="mt-4 flex flex-wrap gap-2">
           <button
+            type="button"
             onClick={sendVerse}
             disabled={loading || sending || !verse?.text.trim()}
             className="flex items-center gap-2 px-4 py-2 bg-rose-600 hover:bg-rose-700 disabled:opacity-50 text-white rounded-xl font-medium transition"

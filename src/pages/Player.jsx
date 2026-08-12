@@ -331,6 +331,7 @@ function Player() {
             {history.map((h) => (
               <button
                 key={h.url}
+                type="button"
                 onClick={() => handleLoad({ preventDefault: () => {} }, h.url)}
                 className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-rose-50 text-rose-700 text-xs font-medium hover:bg-rose-100 transition"
                 title={h.url}
@@ -340,6 +341,7 @@ function Player() {
               </button>
             ))}
             <button
+              type="button"
               onClick={clearHistory}
               className="p-1 rounded-lg text-slate-400 hover:bg-rose-50 hover:text-rose-600"
               title="Clear history"

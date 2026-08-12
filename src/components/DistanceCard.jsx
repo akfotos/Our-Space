@@ -18,11 +18,34 @@ function haversine(lat1, lon1, lat2, lon2) {
 }
 
 function DistanceCard({ profileA = USERS.A, profileB = USERS.B }) {
+  const hasCoords =
+    Number.isFinite(profileA.lat) &&
+    Number.isFinite(profileA.lon) &&
+    Number.isFinite(profileB.lat) &&
+    Number.isFinite(profileB.lon);
+
   const km = useMemo(
-    () => haversine(profileA.lat, profileA.lon, profileB.lat, profileB.lon),
-    [profileA, profileB]
+    () => (hasCoords ? haversine(profileA.lat, profileA.lon, profileB.lat, profileB.lon) : 0),
+    [hasCoords, profileA, profileB]
   );
   const mi = km * 0.621371;
+
+  if (!hasCoords) {
+    return (
+      <section className="relative overflow-hidden bg-gradient-to-br from-white/70 to-white/40 backdrop-blur-xl border border-white/30 rounded-3xl p-6 shadow-xl transition hover:scale-[1.02]">
+        <Plane
+          size={56}
+          className="absolute -top-2 -right-2 text-rose-200/40 rotate-12"
+        />
+        <h2 className="text-sm font-bold uppercase tracking-widest text-rose-700/70 mb-2">
+          Distance Between Us
+        </h2>
+        <p className="text-sm text-slate-500">
+          Waiting for both of you to share a location. Allow location access to see the distance between you.
+        </p>
+      </section>
+    );
+  }
 
   return (
     <section className="relative overflow-hidden bg-gradient-to-br from-white/70 to-white/40 backdrop-blur-xl border border-white/30 rounded-3xl p-6 shadow-xl transition hover:scale-[1.02]">
