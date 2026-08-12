@@ -6,14 +6,12 @@ import { useCouple } from '../contexts/CoupleContext';
 import { usePresence } from '../contexts/PresenceContext';
 import { usePlayerSync } from '../hooks/usePlayerSync';
 import { parseVideoSource } from '../utils/videoSource';
-import DirectVideoSync from '../components/DirectVideoSync';
 import {
   Play,
   MonitorPlay,
   Link2,
   ExternalLink,
   AlertCircle,
-  Film,
   History,
   Trash2,
   Clock,
@@ -38,36 +36,6 @@ function saveHistory(coupleId, history) {
     const key = `${HISTORY_KEY}-${coupleId || 'solo'}`;
     localStorage.setItem(key, JSON.stringify(history.slice(0, MAX_HISTORY)));
   } catch {}
-}
-
-function platformIcon(type) {
-  switch (type) {
-    case 'youtube':
-      return <MonitorPlay size={18} />;
-    case 'direct':
-      return <Film size={18} />;
-    default:
-      return <Link2 size={18} />;
-  }
-}
-
-function platformLabel(type) {
-  switch (type) {
-    case 'youtube':
-      return 'YouTube';
-    case 'direct':
-      return 'Direct video';
-    case 'embed':
-      return 'Embedded video';
-    case 'netflix':
-      return 'Netflix';
-    case 'prime':
-      return 'Prime Video';
-    case 'disney':
-      return 'Disney+';
-    default:
-      return 'Video';
-  }
 }
 
 function UnsupportedCard({ title, url, note }) {
@@ -105,7 +73,7 @@ function Player() {
   const [error, setError] = useState('');
   const [history, setHistory] = useState(() => loadHistory(coupleId));
   const [isLoading, setIsLoading] = useState(false);
-  const [detectedType, setDetectedType] = useState(null);
+  const [detected, setDetected] = useState(false);
 
   useEffect(() => {
     const unsub = onValue(stateRef, (snap) => {
@@ -116,12 +84,12 @@ function Player() {
 
   useEffect(() => {
     const source = parseVideoSource(input.trim());
-    setDetectedType(source?.type || null);
+    setDetected(source?.type === 'youtube');
   }, [input]);
 
-  const addToHistory = (url, type) => {
+  const addToHistory = (url) => {
     setHistory((prev) => {
-      const next = [{ url, type, at: Date.now() }, ...prev.filter((h) => h.url !== url)];
+      const next = [{ url, at: Date.now() }, ...prev.filter((h) => h.url !== url)];
       saveHistory(coupleId, next);
       return next.slice(0, MAX_HISTORY);
     });
@@ -141,37 +109,24 @@ function Player() {
     setIsLoading(true);
     const source = parseVideoSource(url);
 
-    if (!source) {
-      setError(
-        'Could not recognize that video link. Try a YouTube, Vimeo, Dailymotion, Twitch, Netflix, or direct video URL.'
-      );
+    if (!source || source.type !== 'youtube') {
+      setError('Only YouTube links are supported. Paste a youtube.com or youtu.be link.');
       setIsLoading(false);
       return;
     }
 
     try {
-      if (source.type === 'youtube') {
-        await set(stateRef, {
-          type: 'youtube',
-          videoId: source.id,
-          status: 'paused',
-          currentTime: 0,
-          updatedBy: user?.uid || '',
-          updatedAt: serverTimestamp(),
-        });
-      } else {
-        await set(stateRef, {
-          type: source.type,
-          url: source.url,
-          status: 'paused',
-          currentTime: 0,
-          updatedBy: user?.uid || '',
-          updatedAt: serverTimestamp(),
-        });
-      }
-      addToHistory(url, source.type);
+      await set(stateRef, {
+        type: 'youtube',
+        videoId: source.id,
+        status: 'paused',
+        currentTime: 0,
+        updatedBy: user?.uid || '',
+        updatedAt: serverTimestamp(),
+      });
+      addToHistory(url);
       setInput('');
-      setDetectedType(null);
+      setDetected(false);
     } catch (err) {
       setError('Failed to load video. Please try again.');
     } finally {
@@ -179,7 +134,7 @@ function Player() {
     }
   };
 
-  const activeType = playerState?.type || null;
+  const hasVideo = playerState?.type === 'youtube';
   const partnerOnline = partner?.uid ? !!presence[partner.uid]?.online : false;
 
   const loaderName = useMemo(() => {
@@ -189,78 +144,26 @@ function Player() {
   }, [playerState?.updatedBy, user?.uid, partner?.name]);
 
   const renderPlayer = () => {
-    if (!playerState) {
+    if (!hasVideo) {
       return (
         <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-400">
           <MonitorPlay size={48} className="mb-3 opacity-50" />
-          <p className="text-sm">Paste a link above and click Load to watch together.</p>
+          <p className="text-sm">Paste a YouTube link above and click Load to watch together.</p>
         </div>
       );
     }
 
-    if (activeType === 'youtube') {
-      if (playerError && playerState?.videoId) {
-        return (
-          <UnsupportedCard
-            title="YouTube"
-            url={`https://www.youtube.com/watch?v=${playerState.videoId}`}
-            note={playerError}
-          />
-        );
-      }
-      return null;
-    }
-
-    if (activeType === 'direct') {
-      return <DirectVideoSync url={playerState.url} />;
-    }
-
-    if (activeType === 'embed') {
-      return (
-        <iframe
-          src={playerState.url}
-          title="Watch together"
-          allow="fullscreen; autoplay"
-          className="absolute inset-0 w-full h-full border-0 bg-black"
-        />
-      );
-    }
-
-    if (activeType === 'netflix') {
+    if (playerError && playerState?.videoId) {
       return (
         <UnsupportedCard
-          title="Netflix"
-          url={playerState.url}
-          note="Netflix cannot be embedded inside other websites. Click below to open the title on Netflix, then use the chat to coordinate play/pause."
+          title="YouTube"
+          url={`https://www.youtube.com/watch?v=${playerState.videoId}`}
+          note={playerError}
         />
       );
     }
 
-    if (activeType === 'prime') {
-      return (
-        <UnsupportedCard
-          title="Prime Video"
-          url={playerState.url}
-          note="Prime Video cannot be embedded inside other websites. Click below to open it, then use the chat to coordinate."
-        />
-      );
-    }
-
-    if (activeType === 'disney') {
-      return (
-        <UnsupportedCard
-          title="Disney+"
-          url={playerState.url}
-          note="Disney+ cannot be embedded inside other websites. Click below to open it, then use the chat to coordinate."
-        />
-      );
-    }
-
-    return (
-      <div className="absolute inset-0 flex items-center justify-center text-slate-400 text-sm">
-        Unsupported player type.
-      </div>
-    );
+    return null;
   };
 
   return (
@@ -269,7 +172,7 @@ function Player() {
         <div>
           <h2 className="text-2xl font-bold text-slate-700">Watch Together</h2>
           <p className="text-sm text-slate-500">
-            Share a link and enjoy a movie night in perfect sync.
+            Share a YouTube link and enjoy a movie night in perfect sync.
           </p>
         </div>
         <div
@@ -296,13 +199,13 @@ function Player() {
         <form onSubmit={handleLoad} className="flex gap-2">
           <div className="relative flex-1">
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
-              {detectedType ? platformIcon(detectedType) : <Link2 size={18} />}
+              {detected ? <MonitorPlay size={18} /> : <Link2 size={18} />}
             </span>
             <input
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Paste YouTube, Vimeo, Twitch, Netflix, or any video URL"
+              placeholder="Paste a YouTube link (youtube.com or youtu.be)"
               className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-rose-100 focus:outline-none focus:ring-2 focus:ring-rose-300 bg-rose-50/50 text-sm"
             />
           </div>
@@ -336,7 +239,7 @@ function Player() {
                 className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-rose-50 text-rose-700 text-xs font-medium hover:bg-rose-100 transition"
                 title={h.url}
               >
-                {platformIcon(h.type)}
+                <MonitorPlay size={18} />
                 <span className="max-w-[12rem] truncate">{h.url}</span>
               </button>
             ))}
@@ -358,17 +261,17 @@ function Player() {
       >
         <div
           id="youtube-player"
-          className={`absolute inset-0 ${activeType === 'youtube' && !playerError ? '' : 'invisible'}`}
+          className={`absolute inset-0 ${hasVideo && !playerError ? '' : 'invisible'}`}
         />
         {renderPlayer()}
 
         <div className="absolute top-3 right-3 flex items-center gap-2">
-          {activeType === 'youtube' && !ready && (
+          {hasVideo && !ready && (
             <span className="px-2.5 py-1 rounded-full bg-black/60 text-white text-xs backdrop-blur">
               Loading player…
             </span>
           )}
-          {activeType && (
+          {hasVideo && (
             <span className="px-2.5 py-1 rounded-full bg-black/60 text-white text-xs backdrop-blur flex items-center gap-1.5">
               <Clock size={12} />
               {playerState?.status === 'playing' ? 'Playing' : 'Paused'}
@@ -377,19 +280,21 @@ function Player() {
         </div>
       </div>
 
-      {activeType && (
+      {hasVideo && (
         <div className="bg-white/80 backdrop-blur rounded-2xl border border-rose-100 p-4 shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-rose-50 text-rose-600 rounded-xl">{platformIcon(activeType)}</div>
+            <div className="p-2 bg-rose-50 text-rose-600 rounded-xl">
+              <MonitorPlay size={18} />
+            </div>
             <div>
-              <p className="text-sm font-semibold text-slate-700">{platformLabel(activeType)}</p>
+              <p className="text-sm font-semibold text-slate-700">YouTube</p>
               <p className="text-xs text-slate-500">
                 {loaderName ? `Loaded by ${loaderName}` : 'Ready to watch'}
                 {playerState?.currentTime > 0 && ` · ${Math.floor(playerState.currentTime)}s`}
               </p>
             </div>
           </div>
-          {activeType === 'youtube' && playerState?.videoId && (
+          {playerState?.videoId && (
             <a
               href={`https://www.youtube.com/watch?v=${playerState.videoId}`}
               target="_blank"
@@ -398,17 +303,6 @@ function Player() {
             >
               <ExternalLink size={14} />
               Open on YouTube
-            </a>
-          )}
-          {activeType !== 'youtube' && activeType !== 'direct' && playerState?.url && (
-            <a
-              href={playerState.url}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-100 text-slate-700 text-sm font-medium hover:bg-slate-200 transition"
-            >
-              <ExternalLink size={14} />
-              Open original
             </a>
           )}
         </div>
