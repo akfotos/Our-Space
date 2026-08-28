@@ -1,13 +1,8 @@
 ﻿rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    function isInvited() {
-      return request.auth != null &&
-        request.auth.token.email in ['amenyahemmanuel@gmail.com', 'Sarahyeboah023@gmail.com'];
-    }
-
     function isSignedIn() {
-      return isInvited();
+      return request.auth != null;
     }
 
     function userCoupleId(uid) {
@@ -23,11 +18,16 @@ service cloud.firestore {
     }
 
     match /users/{uid} {
-      allow read, write: if isOwner(uid);
+      allow read: if isOwner(uid);
+      allow create: if isOwner(uid);
+      allow update: if isOwner(uid);
     }
 
     match /couples/{coupleId} {
-      allow read, write: if isInCouple(coupleId);
+      allow get: if isSignedIn();
+      allow list: if isInCouple(coupleId);
+      allow create: if isSignedIn();
+      allow update, delete: if isInCouple(coupleId);
     }
 
     match /couples/{coupleId}/{collection}/{docId} {

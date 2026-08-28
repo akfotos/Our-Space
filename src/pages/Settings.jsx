@@ -60,7 +60,7 @@ function Card({ icon: Icon, title, children }) {
 
 function Settings() {
   const { settings, setSetting } = useSettings();
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const { couple, coupleId, members, myProfile, partner, updateMemberName, clearUserCoupleMapping } = useCouple();
   const navigate = useNavigate();
   const [copied, setCopied] = useState(false);
@@ -95,8 +95,7 @@ function Settings() {
       }
       await updateDoc(doc(db, 'users', user.uid), { coupleId: null });
       await clearUserCoupleMapping(user.uid);
-      await signOut();
-      navigate('/login');
+      navigate('/');
     } catch (err) {
       console.error('Failed to leave couple', err);
     }

@@ -8,7 +8,6 @@ import PrivateRoute from './components/PrivateRoute';
 import Nav from './components/Nav';
 import BubbleBackground from './components/BubbleBackground';
 import WelcomeScreen from './components/WelcomeScreen';
-import Auth from './components/Auth';
 import Dashboard from './pages/Dashboard';
 import Chat from './pages/Chat';
 import Player from './pages/Player';
@@ -50,7 +49,6 @@ function AppContent() {
       <Nav />
       <main className="relative z-10 flex-1 p-4 sm:p-6">
         <Routes>
-          <Route path="/login" element={<Auth />} />
           <Route path="/" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
           <Route path="/chat" element={<PrivateRoute><Chat /></PrivateRoute>} />
           <Route path="/watch" element={<PrivateRoute><Player /></PrivateRoute>} />

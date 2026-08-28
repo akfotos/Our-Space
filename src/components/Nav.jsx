@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useChat } from '../hooks/useChat';
 import {
@@ -11,20 +11,13 @@ import {
   Settings,
   Menu,
   X,
-  LogOut,
 } from 'lucide-react';
 
 function Nav() {
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const { unreadCount } = useChat();
   const { pathname } = useLocation();
-  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
-
-  const handleSignOut = async () => {
-    await signOut();
-    navigate('/login');
-  };
 
   const links = [
     { to: '/', label: 'Dashboard', icon: Heart },
@@ -81,18 +74,6 @@ function Nav() {
               </Link>
             );
           })}
-          <span className="ml-2 text-sm text-slate-500 hidden md:inline">
-            {user.displayName}
-          </span>
-          <button
-            type="button"
-            onClick={handleSignOut}
-            className="ml-2 p-2 rounded-lg text-slate-500 hover:bg-rose-50 hover:text-rose-600"
-            aria-label="Sign out"
-            title="Sign out"
-          >
-            <LogOut size={18} />
-          </button>
         </div>
       </div>
 
@@ -122,16 +103,6 @@ function Nav() {
               </Link>
             );
           })}
-          <div className="flex items-center justify-between pt-2 border-t border-rose-100">
-            <span className="text-sm text-slate-500">{user.displayName}</span>
-            <button
-              type="button"
-              onClick={handleSignOut}
-              className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-rose-50"
-            >
-              <LogOut size={18} /> Sign out
-            </button>
-          </div>
         </div>
       )}
     </nav>
